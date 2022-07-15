@@ -1,0 +1,25 @@
+{
+    "name": "cilo/unleashed2",
+    "authors": [
+        {
+            "name": "cecil",
+            "email": "migayicecil@gmail.com"
+        }
+    ],
+    "require": {
+        "spatie/async": "^1.5",
+        "aferrandini/phpqrcode": "^1.0",
+        "dompdf/dompdf": "^2.0",
+        "phpmailer/phpmailer": "^6.6",
+        "monolog/monolog": "^2.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "App\\Common\\": "app/common/",
+            "App\\Esd\\": "app/esd/",
+            "App\\Unleashed\\": "app/unleashed/",
+            "App\\Enterprise\\": "app/enterprise/"
+        }
+    }
+}
