@@ -10,7 +10,7 @@ class InvoiceTemplate{
         $this->log = $log;
     }
 
-    public function genSignedHTMLTemplate($KRAQRCodeLink, $invoice){        
+    public function genSignedHTMLTemplate($qrCodePath, $KRAQRCodeLink, $invoice){        
         $invoiceNumber = $invoice->InvoiceNumber;
         $invoiceOrderNumber = $invoice->OrderNumber;
         $invoiceDate = $invoice->InvoiceDate;
@@ -27,25 +27,20 @@ class InvoiceTemplate{
         $postalAddressStreetAddress2 = $invoice->PostalAddress->StreetAddress2;
         $postalAddressCity = $invoice->PostalAddress->City;
         $postalAddressCountry = $invoice->PostalAddress->Country; 
-        $invoiceLines =  $invoice->InvoiceLines;  
-        $prod1 = $invoiceLines[0]->Product->ProductDescription; 
+        $invoiceLines =  $invoice->InvoiceLines;   
 
         echo "<br/><==== Template creation started ====><br/>";
-        echo "<br/>customer: $customerName, Invoice #: $invoiceNumber, Prod: $prod1";
+        echo "<br/>customer: $customerName, Invoice #: $invoiceNumber";
         echo "<br/>";
 
         $htmlTemplate = "";        
         if(!empty($KRAQRCodeLink)){
-            $baseurl = "http://localhost:8000";
-            //$img = $_SERVER["DOCUMENT_ROOT"]."/".$qrCodePath;
-            // $data = base64_encode($img);
-            // $imgSrc = 'data:'.$img.';base64,'.$data;
-            // echo $img."<br/>";
+
             $htmlTemplate = "
                 <div style='padding: 10px'>
-                    <div><img src='http://localhost:8000/svcinvoicetop.png'/></div>
+                    <div><img src='https://images.squarespace-cdn.com/content/v1/5b69f9f37e3c3af551b48958/1559157173218-VJDY1ISN5QYWIOSLS5X7/Logo+-+Grey.png?format=300w'/></div>
                     <div border=1 style='margin-top: 10px; width: 950px; margin-left: 30px'>
-                        <table style='width: 950px; font-size: 16px;'>
+                        <table style='width: 950px; font-size: 14px;'>
                             <tr style='text-align: left;'>
                                 <th style='width: 350px;text-align: left;'>$customerName</th>
                                 <th style='width: 200px;text-align: left;'>Invoice Date:</th>
@@ -53,28 +48,28 @@ class InvoiceTemplate{
                             </tr>
                             <tr style='text-align: left;'>
                                 <td style='width: 350px;'>
-                                    $postalAddressStreetAddress <br/><br/>
-                                    $postalAddressStreetAddress2<br/><br/>  
-                                    $postalAddressCity<br/><br/> 
-                                    $postalAddressCountry<br/><br/>
+                                    $postalAddressStreetAddress <br/>
+                                    $postalAddressStreetAddress2<br/>  
+                                    $postalAddressCity<br/> 
+                                    $postalAddressCountry<br/>
                                     P051137152X              
                                 </td>
                                 <td style='width: 200px;'>
-                                    $invoiceDate<br/><br/> 
-                                    <b>Invoice #</b><br/><br/>
-                                    $invoiceNumber <br/><br/> 
+                                    $invoiceDate<br/> 
+                                    <b>Invoice #</b><br/>
+                                    $invoiceNumber <br/> 
                                     <b>Customer Ref</b>             
                                 </td>
                                 <td style='width: 400px;'>
-                                    Spring Valley Shopping Centre, Shop 5<br/><br/>  
-                                    Lower Kabete Road  <br/><br/>
+                                    Spring Valley Shopping Centre, Shop 5<br/>  
+                                    Lower Kabete Road  <br/>
                                     Nairobi Kenya +254 775 111 111 <br/>
                                     operations@springvalleycoffee.com <br/>
                                     <b>PIN: P051380899P</b>            
                                 </td>
                             </tr>
                         </table>
-                        <table style='width: 950px; font-size: 16px; margin-top: 70px; border-collapse: collapse;'>
+                        <table style='width: 950px; font-size: 14px; margin-top: 40px; border-collapse: collapse;'>
                             <tr style='text-align: left; border-bottom: 2px solid rgb(122, 120, 120);'>
                                 <th style='width: 350px;padding:2px;text-align: left;'>Description</th>
                                 <th style='width: 100px;padding:2px;text-align: left;'>Qty</th>
@@ -97,9 +92,45 @@ class InvoiceTemplate{
                             }
                         $htmlTemplate .= "
                         </table>
+                        <table style='width: 400px; font-size: 14px; margin-top: 20px; margin-left: 550px;border-collapse: collapse;'>
+                            <tr style='text-align: left;'>
+                                <td style='width: 200px;padding:2px;'><b>SUBTOTAL (KES)</b></td>
+                                <td style='width: 200px;padding:2px;'>$subTotal</td>
+                            </tr>
+                            <tr style='text-align: left;'>
+                                <td style='width: 200px;padding:2px;'><b>CHARGE SUBTOTAL (KES)</b></td>
+                                <td style='width: 200px;padding:2px;'>0.00</td>
+                            </tr>
+                            <tr style='text-align: left;'>
+                                <td style='width: 200px;padding:2px;'><b>TAX (KES)</b></td>
+                                <td style='width: 200px;padding:2px;'>$taxTotal</td>
+                            </tr>
+                            <tr style='text-align: left;border-top: 2px solid rgb(122, 120, 120);border-top: 2px solid rgb(122, 120, 120);'>
+                                <td style='width: 200px;padding:2px;'><b>TOTAL INCL. TAX (KES)</b></td>
+                                <td style='width: 200px;padding:2px;font-weight: bold;'>$total</td>
+                            </tr>
+                        </table>
+                        <div style='margin-top: 10px; font-size: 14px;'>
+                            <div style='font-weight: bold;'>Due Date <span style='margin-left: 20px;'>$invoiceDueDate</span></div>
+                            <div style='margin-top: 10px;font-weight: bold;'>Payment Terms: <span style='margin-left: 20px; font-weight: normal;'>$paymentTerm</span></div>
+                            <div style='margin-top: 10px;font-weight: bold;'>Payment Details:
+                                <ul style='margin-left: 40px; list-style: none; margin: 5px;'>                    
+                                    <li>Bank: Diamond Trust Bank</li>
+                                    <li>Branch: Westgate (006) · 0433678002 (KES) or 0433678001 (USD)</li>
+                                    <li>Cheque: Spring Valley Coffee Roasters Limited</li>
+                                    <li>Lipa na Mpesa · Buy Goods & Services · 866299 </li>               
+                                </ul>                
+                            </div> 
+                            <div style='margin-top: 0px;font-weight: bold;'>
+                                <p>Delivery received by:</p>
+                                <p style='margin-top: 15px;'>Name: <span style='margin-left: 5px;'>__________________________________</span></p>   
+                                <p style='margin-top: 15px;'>Signature: <span style='margin-left: 5px;'>______________________________</span></p>  
+                                <p style='margin-top: 15px;'>Date: <span style='margin-left: 5px;'>___________________________________</span></p>          
+                            </div>
+                        </div>
                     </div>
                 </div>
-               KRA signing: <a href='".$KRAQRCodeLink."'>".$KRAQRCodeLink."'</a>
+                <img src='".$qrCodePath."'/><br/>
             "; 
             $this->log->info("Template generation successfully.");           
         }else{

@@ -14,8 +14,10 @@ extension_loaded('dom') || $missingExtensions[] = 'dom';
 extension_loaded('filter') || $missingExtensions[] = 'filter';
 extension_loaded('hash') || $missingExtensions[] = 'hash';
 extension_loaded('iconv') || $missingExtensions[] = 'iconv';
+extension_loaded('json') || $missingExtensions[] = 'json';
 extension_loaded('libxml') || $missingExtensions[] = 'libxml';
-extension_loaded('mbstring') || $missingExtensions[] = 'mbstring';
+extension_loaded('xmlreader') || $missingExtensions[] = 'xmlreader';
+extension_loaded('zip') || $missingExtensions[] = 'zip';
 
 if ($missingExtensions) {
     $issues[] = 'Your Composer dependencies require the following PHP extensions to be installed: ' . implode(', ', $missingExtensions);

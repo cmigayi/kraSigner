@@ -110,7 +110,7 @@ class ESDApi{
 
                 if($decodedEsdInvoiceResponse->status == "SUCCESS"){
                     echo "qrcode: ".$decodedEsdInvoiceResponse->qrCode."<br />";
-                    $log->info("qrcode: ".$decodedEsdInvoiceResponse->qrCode);
+                    $this->log->info("qrcode: ".$decodedEsdInvoiceResponse->qrCode);
                     $KRAQRCodeLink = $decodedEsdInvoiceResponse->qrCode;
                 }
             }                
