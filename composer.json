@@ -11,9 +11,7 @@
         "aferrandini/phpqrcode": "^1.0",
         "dompdf/dompdf": "^2.0",
         "phpmailer/phpmailer": "^6.6",
-        "monolog/monolog": "^2.7",
-        "faisalman/simple-excel-php": "^0.3.15",
-        "spatie/simple-excel": "^2.1"
+        "monolog/monolog": "^2.7"
     },
     "autoload": {
         "psr-4": {
@@ -21,7 +19,10 @@
             "App\\Common\\": "app/common/",
             "App\\Esd\\": "app/esd/",
             "App\\Unleashed\\": "app/unleashed/",
-            "App\\Enterprise\\": "app/enterprise/"
+            "App\\Enterprise\\": "app/enterprise/",
+            "App\\DataHandlers\\": "app/datahandlers/",
+            "App\\Models\\": "app/models/",
+            "App\\Database\\": "app/database/"
         }
     }
 }

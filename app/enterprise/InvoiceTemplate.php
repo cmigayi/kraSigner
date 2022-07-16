@@ -10,7 +10,8 @@ class InvoiceTemplate{
         $this->log = $log;
     }
 
-    public function genSignedHTMLTemplate($qrCodePath, $KRAQRCodeLink, $invoice){        
+    public function genSignedHTMLTemplate($qrCodePath, $KRAQRCodeLink, $invoice){ 
+        $qrCodePath = "http://".$_SERVER['SERVER_NAME']."/".$qrCodePath;       
         $invoiceNumber = $invoice->InvoiceNumber;
         $invoiceOrderNumber = $invoice->OrderNumber;
         $invoiceDate = $invoice->InvoiceDate;
@@ -37,10 +38,21 @@ class InvoiceTemplate{
         if(!empty($KRAQRCodeLink)){
 
             $htmlTemplate = "
-                <div style='padding: 10px'>
-                    <div><img src='https://images.squarespace-cdn.com/content/v1/5b69f9f37e3c3af551b48958/1559157173218-VJDY1ISN5QYWIOSLS5X7/Logo+-+Grey.png?format=300w'/></div>
-                    <div border=1 style='margin-top: 10px; width: 950px; margin-left: 30px'>
-                        <table style='width: 950px; font-size: 14px;'>
+                <div style='padding: 10px;font-size: 14px;'>  
+                        <table style='width: 950px;'>
+                            <tr style='text-align: left;'>
+                                <td style='width:500px;'>
+                                    <span style='margin-left: 45px; font-size: 25px; color: #232323; font-weight: bold; font-family: Arial, Helvetica, sans-serif;'>
+                                        INVOICE + DELIVERY NOTE
+                                    </span>
+                                </td>            
+                                <td style='width: 400px;'>
+                                    <img style='margin-left: 150px;' width='150px' height='100px' src='https://images.squarespace-cdn.com/content/v1/5b69f9f37e3c3af551b48958/1559157173218-VJDY1ISN5QYWIOSLS5X7/Logo+-+Grey.png?format=300w'/>
+                                </td>
+                            </tr>
+                        </table> 
+                    <div style='margin-top: 10px; width: 950px; margin-left: 30px'>
+                        <table style='width: 950px;'>
                             <tr style='text-align: left;'>
                                 <th style='width: 350px;text-align: left;'>$customerName</th>
                                 <th style='width: 200px;text-align: left;'>Invoice Date:</th>
@@ -69,7 +81,7 @@ class InvoiceTemplate{
                                 </td>
                             </tr>
                         </table>
-                        <table style='width: 950px; font-size: 14px; margin-top: 40px; border-collapse: collapse;'>
+                        <table style='width: 950px;margin-top: 40px; border-collapse: collapse;'>
                             <tr style='text-align: left; border-bottom: 2px solid rgb(122, 120, 120);'>
                                 <th style='width: 350px;padding:2px;text-align: left;'>Description</th>
                                 <th style='width: 100px;padding:2px;text-align: left;'>Qty</th>
@@ -92,7 +104,7 @@ class InvoiceTemplate{
                             }
                         $htmlTemplate .= "
                         </table>
-                        <table style='width: 400px; font-size: 14px; margin-top: 20px; margin-left: 550px;border-collapse: collapse;'>
+                        <table style='width: 400px;margin-top: 20px; margin-left: 550px;border-collapse: collapse;'>
                             <tr style='text-align: left;'>
                                 <td style='width: 200px;padding:2px;'><b>SUBTOTAL (KES)</b></td>
                                 <td style='width: 200px;padding:2px;'>$subTotal</td>
@@ -110,7 +122,7 @@ class InvoiceTemplate{
                                 <td style='width: 200px;padding:2px;font-weight: bold;'>$total</td>
                             </tr>
                         </table>
-                        <div style='margin-top: 10px; font-size: 14px;'>
+                        <div style='margin-top: 10px;'>
                             <div style='font-weight: bold;'>Due Date <span style='margin-left: 20px;'>$invoiceDueDate</span></div>
                             <div style='margin-top: 10px;font-weight: bold;'>Payment Terms: <span style='margin-left: 20px; font-weight: normal;'>$paymentTerm</span></div>
                             <div style='margin-top: 10px;font-weight: bold;'>Payment Details:
@@ -130,7 +142,7 @@ class InvoiceTemplate{
                         </div>
                     </div>
                 </div>
-                <img src='".$qrCodePath."'/><br/>
+                <div style='margin-left:400px'><img width='30px' height='30px' src='".$qrCodePath."'/></div>
             "; 
             $this->log->info("Template generation successfully.");           
         }else{

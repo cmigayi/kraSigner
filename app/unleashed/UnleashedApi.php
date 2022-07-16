@@ -10,12 +10,11 @@ class UnleashedApi{
 
     public function __construct($log){
         $this->log = $log;
+        $config = include("Config.php");
 
-        // configuration data
-        // must use your own id and key with no extra whitespace
-        $this->api = "https://api.unleashedsoftware.com/";
-        $this->apiId = "d423e2fe-a575-4f9e-abe0-3154376ce090";
-        $this->apiKey = "YAeCbF4cCajaiDyGzeQhbSZzbT5uQRIl3ni3y0HJiw6JW3KMCNOFrMP5opFPqkz0Ssxshx33vcOs3NYFQ==";
+		$this->api = $config['unleashed_api'];
+        $this->apiId = $config['unleashed_api_id'];
+        $this->apiKey = $config['unleashed_api_key'];
     } 
 
     // Get the request signature:
