@@ -6,8 +6,8 @@ require_once('vendor/autoload.php');
  * 3b. The account profile info
  * 7. Schedule service (CRONJOB)  
  * 9. Pay attention of the http codes
- * 10. Email content
  * 11. Mysql customers emails null
+ * 12. API request by startdate and enddate 
  * 
  */
 
@@ -72,13 +72,41 @@ function booleanToMysqlHandler($boolean){
     return 0;
 } 
 
+function emailMessageGen($svcCustomer, $invoice, $KRAQRCodeLink){    
+    $invoiceNumber = $invoice->InvoiceNumber;
+    $total = $invoice->Total;
+    $invoiceDueDate = $invoice->DueDate;
+    $message = "
+    <div>
+    <p>Hi $svcCustomer->ContactFirstName,<p>
+
+    <p>Here&#39;s invoice $invoiceNumber for KES $total.<p>
+    
+    <p>The amount outstanding of KES $total is due on $invoiceDueDate.</p>
+    
+    <p>View your bill online: $KRAQRCodeLink<p>
+    
+    <p>
+    From your online bill you can print a PDF, export a CSV, or create a free login and view your
+    outstanding bills.
+    </p>
+    
+    <p>If you have any questions, please let us know.</p>
+    
+    Thanks,<br/>
+    Spring Valley Coffee Roasters Limited
+    </div>
+    ";
+    return $message;
+}
+
 function invoiceManager($unleashedInvoices, $log){
     $config = include("Config.php");
     $smtpServer = $config['smtp_server'];
     $username = $config['email_username'];
     $password = $config['email_password'];
     $port = $config['port'];
-    $from = $config['from'];
+    $from = $config['from'];    
 
     $invoiceSigned = false;
     $qrcodeCreated = false;
@@ -93,6 +121,11 @@ function invoiceManager($unleashedInvoices, $log){
         $KRAQRCodeLink = $esdApi->testPostInvoice($invoice);
         $qrCodePath = "";
         $invoicePDFPath = "";
+
+        $customerGuid = $invoice->Customer->Guid;
+                
+        $unleashedApi = new UnleashedApi($log);
+        $svcCustomer = $unleashedApi->getCustomer("Customers/$customerGuid");
 
         if(!empty($KRAQRCodeLink)){
             $invoiceSigned = true;
@@ -111,7 +144,7 @@ function invoiceManager($unleashedInvoices, $log){
             $log->info("Invoice QRCode is created: $qrCodePath");
 
             $invoiceTemplate = new InvoiceTemplate($log);
-            $htmlTemplateArray = $invoiceTemplate->genSignedHTMLTemplate($qrCodePath, $KRAQRCodeLink, $invoice);            
+            $htmlTemplateArray = $invoiceTemplate->genSignedHTMLTemplate($qrCodePath, $KRAQRCodeLink, $invoice, $svcCustomer);            
             $htmlTemplate = ($htmlTemplateArray[0] == null) ? "" : $htmlTemplateArray[0];
             $customerEmail = ($htmlTemplateArray[1] == null) ? "" : $htmlTemplateArray[1]; 
             $customerEmailCC = ($htmlTemplateArray[2] == null) ? "" : $htmlTemplateArray[2];
@@ -123,7 +156,7 @@ function invoiceManager($unleashedInvoices, $log){
 
         if($templateCreated){
             $htmlToPDFManager = new HTMLToPDFManager($log);
-            $invoicePDFPath = $htmlToPDFManager->genPDF($htmlTemplate);  
+            $invoicePDFPath = $htmlToPDFManager->genPDF($htmlTemplate,$invoice);  
         }else{
             $log->info("Invoice template is not created. Check template creator/generator.");
         }
@@ -143,9 +176,7 @@ function invoiceManager($unleashedInvoices, $log){
             $emailManager->setEmailSettings($smtpServer, $username, $password, $port);
             $emailManager->setEmailRecipients($from,$to,'','','');
             $emailManager->setEmailAttachments($invoicePDFPath);
-            $body = <<<HEREDOC
-            Testing content            
-            HEREDOC;            
+            $body = emailMessageGen($svcCustomer, $invoice, $KRAQRCodeLink);                        
             $emailManager->setEmailContent($subject, $body, $altbody);            
             if($emailManager->sendEmail()){
                 $emailSent = true;

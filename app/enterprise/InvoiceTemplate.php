@@ -12,7 +12,7 @@ class InvoiceTemplate{
         $this->log = $log;
     }
 
-    public function genSignedHTMLTemplate($qrCodePath, $KRAQRCodeLink, $invoice){ 
+    public function genSignedHTMLTemplate($qrCodePath, $KRAQRCodeLink, $invoice, $svcCustomer){ 
         $qrCodePath = "http://".$_SERVER['SERVER_NAME']."/".$qrCodePath;       
         $invoiceNumber = $invoice->InvoiceNumber;
         $invoiceOrderNumber = $invoice->OrderNumber;
@@ -31,9 +31,6 @@ class InvoiceTemplate{
         $postalAddressCity = $invoice->PostalAddress->City;
         $postalAddressCountry = $invoice->PostalAddress->Country; 
         $invoiceLines = $invoice->InvoiceLines; 
-        
-        $unleashedApi = new UnleashedApi($this->log);
-        $svcCustomer = $unleashedApi->getCustomer("Customers/$customerGuid");
 
         $customerEmail = $svcCustomer->Email;
         $customerEmailCC = $svcCustomer->EmailCC;

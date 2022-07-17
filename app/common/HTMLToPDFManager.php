@@ -21,9 +21,9 @@ class HTMLToPDFManager{
         //$this->dompdf = new Dompdf();
     }
 
-    public function genPDF($htmlTemplate){
+    public function genPDF($htmlTemplate,$invoice){
         $this->dompdf->loadHtml($htmlTemplate);
-        $file = "invoices/invoice_".uniqid().".pdf";
+        $file = "invoices/invoice_".$invoice->InvoiceNumber.".pdf";
 
         // (Optional) Setup the paper size and orientation
         $this->dompdf->setPaper('A4', 'landscape');
