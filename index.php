@@ -6,6 +6,8 @@ require_once('vendor/autoload.php');
  * 3b. The account profile info
  * 7. Schedule service (CRONJOB)  
  * 9. Pay attention of the http codes
+ * 10. Email content
+ * 11. Mysql customers emails null
  * 
  */
 
@@ -23,13 +25,6 @@ use App\Models\TrackInvoice;
 
 $log = new ErrorLogger("ESDUnleashedApp");
 $log = $log->initLog();
-
-$config = include("Config.php");
-$smtpServer = $config['smtp_server'];
-$username = $config['email_username'];
-$password = $config['email_password'];
-$port = $config['port'];
-$from = $config['from'];
 
 $log->info("App execution started...");
 
@@ -78,6 +73,13 @@ function booleanToMysqlHandler($boolean){
 } 
 
 function invoiceManager($unleashedInvoices, $log){
+    $config = include("Config.php");
+    $smtpServer = $config['smtp_server'];
+    $username = $config['email_username'];
+    $password = $config['email_password'];
+    $port = $config['port'];
+    $from = $config['from'];
+
     $invoiceSigned = false;
     $qrcodeCreated = false;
     $templateCreated = false;
