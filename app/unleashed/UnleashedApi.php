@@ -71,7 +71,7 @@ class UnleashedApi{
             $curl = $this->getCurl($id, $key, $signature, $endpoint, $requestUrl, $format);
             // GET something
             $curl_result = curl_exec($curl);
-            $this->log->info("Unleashed API get endpoint: ".$curl_result);            
+            $this->log->info("Unleashed API get endpoint: success");            
             curl_close($curl);
             return $curl_result;
         }
@@ -127,8 +127,8 @@ class UnleashedApi{
     }
 
     // Invoices
-    function getInvoices() {
-        return $this->getJson($this->apiId, $this->apiKey, "Invoices", "");
+    function getInvoices($endpoint, $request) {
+        return $this->getJson($this->apiId, $this->apiKey, $endpoint, $request);
     }
 
     // Invoices
@@ -137,60 +137,8 @@ class UnleashedApi{
     }
 
     // 
-    function getCustomer($customerGuid) {
-        return $this->getJson($this->apiId, $this->apiKey, "Customers", "Guid=b732047c-650f-4501-985c-ab98986cf50c");
-    }
-
-    // 
-    // function getCustomer($customerCode) {
-    //     return $this->getJson($this->apiId, $this->apiKey, "Customers", "CustomerCode=$customerCode");
-    // }
-
-    // Call the GET invoices method and print the results
-    function testGetInvoices() {
-        echo "Starting test: testGetInvoices" . "<br />";
-        echo "<br />";
-        echo "<br />";
-
-        echo "-------------------------------------------------------------------------------------<br />";
-        echo "GET invoices in JSON format:" . "<br />";
-        echo "<br />";
-        $json = $this->getInvoices();
-        //echo json_encode($json);
-        // echo "<br />";
-        // echo "<br />";
-
-        // echo "GET invoices in JSON format: example of looping through the invoice list" . "<br />";
-        
-        // foreach ($json->Items as $invoice) {
-        //     $invoiceNumber = $invoice->InvoiceNumber;
-        //     $invoiceOrderNumber = $invoice->OrderNumber;
-        //     $invoiceDate = $invoice->InvoiceDate;
-        //     $invoiceDueDate = $invoice->DueDate;
-        //     $subTotal = $invoice->SubTotal;
-        //     $total = $invoice->Total;
-        //     $taxTotal = $invoice->TaxTotal;
-        //     $paymentTerm = $invoice->PaymentTerm;
-        //     $customerName = $invoice->Customer->CustomerName;
-        //     $customerCode = $invoice->Customer->CustomerCode;
-        //     $customerCurrencyId = $invoice->Customer->CurrencyId;
-        //     $customerGuid = $invoice->Customer->Guid;
-        //     $postalAddressStreetAddress = $invoice->PostalAddress->StreetAddress;
-        //     $postalAddressStreetAddress2 = $invoice->PostalAddress->StreetAddress2;
-        //     $postalAddressCity = $invoice->PostalAddress->City;
-        //     $postalAddressCountry = $invoice->PostalAddress->Country;
-        //     echo "JSON Invoice: $invoiceNumber, $invoiceOrderNumber, $invoiceDate, $invoiceDueDate, $subTotal, $customerName, $customerCode,  <br />";
-        //     echo "more details: $postalAddressStreetAddress, $postalAddressStreetAddress2, $postalAddressCity, $postalAddressCountry  <br />";
-        //     echo "more details: $subTotal, $taxTotal, $total, $paymentTerm  <br /><br />";
-        //     $this->log->info("Unleashed API get invoices endpoint: Invoice number - ".$number); 
-        // }
-
-        // echo "<br />";
-        // echo "<br />";
-        // echo "End of test: testGetInvoices" . "<br />";
-        // echo "-------------------------------------------------------------------------------------<br />";
-        
-        return $json; 
+    function getCustomer($endpoint) {
+        return $this->getJson($this->apiId, $this->apiKey, $endpoint, "");
     }
 
     // Call the GET invoice by number method and print the results

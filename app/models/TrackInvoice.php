@@ -13,7 +13,10 @@ class TrackInvoice{
 	private $id;
 	private $invoiceNumber;
 	private $customerName;
+	private $customerEmail;
+	private $customerEmailCC;
 	private $invoiceSigned;
+	private $qrcodeCreated;
 	private $templateCreated;
 	private $pdfCreated;
 	private $emailSent;
@@ -43,12 +46,36 @@ class TrackInvoice{
 		return $this->customerName;
 	}
 
+	public function setCustomerEmail($customerEmail){
+		$this->setCustomerEmail = $customerEmail;
+	}
+
+	public function getCustomerEmail(){
+		return $this->customerEmail;
+	}
+
+	public function setCustomerEmailCC($customerEmailCC){
+		$this->setCustomerEmailCC = $customerEmailCC;
+	}
+
+	public function getCustomerEmailCC(){
+		return $this->customerEmailCC;
+	}
+
 	public function setInvoiceSigned($invoiceSigned){
 		$this->invoiceSigned = $invoiceSigned;
 	}
 
 	public function getInvoiceSigned(){
 		return $this->invoiceSigned;
+	}
+
+	public function setQRCodeCreated($qrcodeCreated){
+		$this->qrcodeCreated = $qrcodeCreated;
+	}
+
+	public function getQRCodeCreated(){
+		return $this->qrcodeCreated;
 	}
 
 	public function setTemplateCreated($templateCreated){

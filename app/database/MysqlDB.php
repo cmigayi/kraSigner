@@ -2,9 +2,6 @@
 namespace App\Database;
 
 /**
-* @author: Cecil Migayi
-* @email: migayicecil@gmail.com
-* @copyright: zapi, 2018
 *
 * Handle all data from mysql db
 */

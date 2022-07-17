@@ -49,7 +49,10 @@ class TrackInvoiceDataHandler extends MysqlDB{
 		$this->passedData = array(
 				$this->trackInvoice->getInvoiceNumber(),
 				$this->trackInvoice->getCustomerName(),
+				$this->trackInvoice->getCustomerEmail(),
+				$this->trackInvoice->getCustomerEmailCC(),
 				$this->trackInvoice->getInvoiceSigned(),
+				$this->trackInvoice->getQRCodeCreated(),
 				$this->trackInvoice->getTemplateCreated(),
 				$this->trackInvoice->getPDFCreated(),
                 $this->trackInvoice->getEmailSent(),
@@ -60,7 +63,7 @@ class TrackInvoiceDataHandler extends MysqlDB{
 
 		try{
 			$this->pdo->beginTransaction();
-			$this->sql = "INSERT INTO tbl_track_invoices VALUES(null,?,?,?,?,?,?,?)";
+			$this->sql = "INSERT INTO tbl_track_invoices VALUES(null,?,?,?,?,?,?,?,?,?,?)";
 			$this->pdoPrepareAndExecute();
 			$trackInvoiceId = $this->pdo->lastInsertId();
 			$this->trackInvoice = $this->getTrackInvoice($trackInvoiceId);			
@@ -89,7 +92,10 @@ class TrackInvoiceDataHandler extends MysqlDB{
 				$this->trackInvoice->setId($this->result[0]['id']);
 				$this->trackInvoice->setInvoiceNumber($this->result[0]['invoice_number']);
 				$this->trackInvoice->setCustomerName($this->result[0]['customer_name']);
+				$this->trackInvoice->setCustomerEmail($this->result[0]['customer_email']);
+				$this->trackInvoice->setCustomerEmailCC($this->result[0]['customer_email_cc']);
 				$this->trackInvoice->setInvoiceSigned($this->result[0]['invoice_signed']);
+				$this->trackInvoice->setQRCodeCreated($this->result[0]['qrcode_created']);
 				$this->trackInvoice->setTemplateCreated($this->result[0]['template_created']);
 				$this->trackInvoice->setPdfCreated ($this->result[0]['pdf_created']);
 				$this->trackInvoice->setEmailSent($this->result[0]['email_sent']);
@@ -121,7 +127,10 @@ class TrackInvoiceDataHandler extends MysqlDB{
 		$this->passedData = array(
                 $this->trackInvoice->getInvoiceNumber(),
                 $this->trackInvoice->getCustomerName(),
-                $this->trackInvoice->getInvoiceSigned(),
+				$this->trackInvoice->getCustomerEmail(),
+				$this->trackInvoice->getCustomerEmailCC(),
+				$this->trackInvoice->getInvoiceSigned(),
+				$this->trackInvoice->getQRCodeCreated(),
                 $this->trackInvoice->getTemplateCreated(),
                 $this->trackInvoice->getPDFCreated(),
                 $this->trackInvoice->getEmailSent(),

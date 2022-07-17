@@ -2,6 +2,8 @@
 
 namespace App\Enterprise;
 
+use App\Unleashed\UnleashedApi;
+
 class InvoiceTemplate{
 
     private $log;
@@ -28,7 +30,14 @@ class InvoiceTemplate{
         $postalAddressStreetAddress2 = $invoice->PostalAddress->StreetAddress2;
         $postalAddressCity = $invoice->PostalAddress->City;
         $postalAddressCountry = $invoice->PostalAddress->Country; 
-        $invoiceLines =  $invoice->InvoiceLines;   
+        $invoiceLines = $invoice->InvoiceLines; 
+        
+        $unleashedApi = new UnleashedApi($this->log);
+        $svcCustomer = $unleashedApi->getCustomer("Customers/$customerGuid");
+
+        $customerEmail = $svcCustomer->Email;
+        $customerEmailCC = $svcCustomer->EmailCC;
+        $customerGSTVATNumber = $svcCustomer->GSTVATNumber;        
 
         echo "<br/><==== Template creation started ====><br/>";
         echo "<br/>customer: $customerName, Invoice #: $invoiceNumber";
@@ -64,7 +73,7 @@ class InvoiceTemplate{
                                     $postalAddressStreetAddress2<br/>  
                                     $postalAddressCity<br/> 
                                     $postalAddressCountry<br/>
-                                    P051137152X              
+                                    $customerGSTVATNumber              
                                 </td>
                                 <td style='width: 200px;'>
                                     $invoiceDate<br/> 
@@ -91,7 +100,8 @@ class InvoiceTemplate{
                                 <th style='width: 50px;padding:2px;text-align: left;'>Tax %</th>
                             </tr>";
                             foreach($invoiceLines as $invoiceLine){  
-                                $productDesc = $invoiceLine->Product->ProductDescription;                              
+                                $productDesc = $invoiceLine->Product->ProductDescription;
+                                $taxRate = $invoiceLine->TaxRate * 100;                              
                                 $htmlTemplate .= "
                                 <tr style='text-align: left;border-bottom: 2px solid rgb(122, 120, 120);'>
                                     <td style='width: 350px;padding:2px;text-align: left;'>$productDesc</td>
@@ -99,7 +109,7 @@ class InvoiceTemplate{
                                     <td style='width: 100px;padding:2px;text-align: left;'>$invoiceLine->UnitPrice</td>
                                     <td style='width: 150px;padding:2px;text-align: left;'>$invoiceLine->LineTotal</td>
                                     <td style='width: 150px;padding:2px;text-align: left;'>$invoiceLine->LineTax</td>
-                                    <td style='width: 100px;padding:2px;text-align: left;'>$invoiceLine->TaxRate</td>
+                                    <td style='width: 100px;padding:2px;text-align: left;'>$taxRate%</td>
                                 </tr>";                                
                             }
                         $htmlTemplate .= "
@@ -148,6 +158,6 @@ class InvoiceTemplate{
         }else{
             $this->log->info("Template generation failed."); 
         }        
-        return $htmlTemplate;
+        return [$htmlTemplate, $customerEmail, $customerEmailCC];
     }
 }

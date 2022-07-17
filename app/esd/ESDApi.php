@@ -1,12 +1,4 @@
 <?php
-
-// 1) Email templating after reviewing API 
-// - what online link is
-// 2) Ask for ESD api endpoints
-// 3) Frequency of triggers daily, weekly
-// 4) required fields for the ESD Signer and whether there are credentials that we need to extract to .env.
-// 5) Manual process ends when we deploy application
-
 namespace App\Esd;
 
 class ESDApi{
@@ -15,12 +7,12 @@ class ESDApi{
 
     public function __construct($log){
         $this->log = $log;
-        $this->api = "http://172.16.24.44:5000/EsdApi/deononline/";
+        $config = include("Config.php");
+
+		$this->api = $config['esd_api'];
     }
 
     function getCurl($endpoint, $requestUrl, $format) {
-       // global $api;
-
         $curl = curl_init($this->api . $endpoint . $requestUrl);
         curl_setopt($curl, CURLOPT_FRESH_CONNECT, true);
         curl_setopt($curl, CURLINFO_HEADER_OUT, true);
@@ -53,7 +45,7 @@ class ESDApi{
           return $curl_result;
         }
         catch (Exception $e) {
-          error_log('Error: ' + $e);
+            $this->log->error('ESD api error: ' + $e);
         }
     }
 
@@ -97,6 +89,8 @@ class ESDApi{
         $invoice->totalInvoiceAmount = "1000";
         $invoice->systemUser = "Joe Doe";
 
+        $this->log->info("ESD process started...");
+
         echo "<br/><br/>";
         echo "Starting ESD process <br />";
         echo "-------------------------------------------------------------------------------------<br />";
@@ -105,7 +99,8 @@ class ESDApi{
         try {
             echo $this->postInvoice($invoice)."<br />";
             $decodedEsdInvoiceResponse = json_decode($this->postInvoice($invoice));
-            if(!empty($decodedEsdInvoiceResponse)) {            
+            if(!empty($decodedEsdInvoiceResponse)) {      
+                $this->log->info("ESD process response: ".$decodedEsdInvoiceResponse->status);      
                 echo "Status: ".$decodedEsdInvoiceResponse->status."<br />";
 
                 if($decodedEsdInvoiceResponse->status == "SUCCESS"){
@@ -115,7 +110,7 @@ class ESDApi{
                 }
             }                
         } catch (\Exception $e) {
-            $this->log->error("ESD error: ".$e->ErrorInfo);                                    
+            $this->log->error("ESD api error: ".$e->ErrorInfo);                                    
         }        
         return $KRAQRCodeLink;
     }

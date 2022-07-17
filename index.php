@@ -2,11 +2,8 @@
 require_once('vendor/autoload.php');
 
 /**
- * 1. getCustomer not getting one customer detail
  * 2. Date format issue
- * 3. Customer KRA PIN not found (Pxxxxxxx)
  * 3b. The account profile info
- * 5. Looping through API pages. Each page has 200 items 
  * 7. Schedule service (CRONJOB)  
  * 9. Pay attention of the http codes
  * 
@@ -36,150 +33,149 @@ $from = $config['from'];
 
 $log->info("App execution started...");
 
-$unleashedApi = new UnleashedApi($log);
+invoiceStuff($log);
+
+// $unleashedApi = new UnleashedApi($log);
+//$unleashedApi->getInvoices("json", "Invoices/Page/1", "");
 //$unleashedInvoices = $unleashedApi->testGetInvoices();
-$unleashedInvoices = json_decode(file_get_contents('raw_json.json'));
-invoiceManager($unleashedInvoices, $log);
+// $unleashedInvoices = json_decode(file_get_contents('raw_json.json'));
+// invoiceManager($unleashedInvoices, $log);
 
 $log->info("App execution stopped...");
-
 
 /**
  * Index Functions
  */
 
+function invoiceStuff($log){
+    $unleashedApi = new UnleashedApi($log);
+
+    $pageSize = 200; 
+    $pageNumber = 1;
+    $numberOfPages = 1;
+    $numberOfItems = 0;
+
+    while($pageNumber <= $numberOfPages){
+        $unleashedInvoices = $unleashedApi->getInvoices("Invoices/Page/$pageNumber", "pageSize=$pageSize");
+
+        $pageSize = $unleashedInvoices->Pagination->PageSize; 
+        $pageNumber = $unleashedInvoices->Pagination->PageNumber;
+        $numberOfPages = $unleashedInvoices->Pagination->NumberOfPages;
+        $numberOfItems = $unleashedInvoices->Pagination->NumberOfItems;
+            
+        invoiceManager($unleashedInvoices, $log);
+
+        $pageNumber = $pageNumber+1; 
+    }
+       
+}
+
+function booleanToMysqlHandler($boolean){
+    if($boolean){
+        return 1;
+    }
+    return 0;
+} 
+
 function invoiceManager($unleashedInvoices, $log){
-    $count = 0;
-    $pageSize = $unleashedInvoices->Pagination->PageSize; 
-    $pageNumber = $unleashedInvoices->Pagination->PageNumber;
-    $numberOfPages = $unleashedInvoices->Pagination->NumberOfPages;
-    $numberOfItems = $unleashedInvoices->Pagination->NumberOfItems;
+    $invoiceSigned = false;
+    $qrcodeCreated = false;
+    $templateCreated = false;
+    $pdfCreated = false;
+    $emailSent = false;
+    $customerEmail = "";
+    $customerEmailCC = "";
 
-    $log->info("Endpoint details: ".$numberOfItems.", ".$pageSize.", ".$pageNumber.", ".$numberOfPages);
-    
-    foreach ($unleashedInvoices->Items as $invoice) {  
-
+    foreach ($unleashedInvoices->Items as $invoice) {
         $esdApi = new ESDApi($log);
         $KRAQRCodeLink = $esdApi->testPostInvoice($invoice);
-        //$KRAQRCodeLink = "https://tims-test.kra.go.ke/KRA-Portal/invoiceChk.htm?actionCode=loadPage&invoiceNo=0100099570000000558";
+        $qrCodePath = "";
+        $invoicePDFPath = "";
 
         if(!empty($KRAQRCodeLink)){
+            $invoiceSigned = true;
+            $log->info("Invoice is signed: $KRAQRCodeLink");            
+        }else{
+            $log->info("Invoice is not signed. Check if ESD API is still working.");
+        }
+
+        if($invoiceSigned){
             $qRCodeManager = new QRCodeManager();
             $qrCodePath = $qRCodeManager->genQRCode($KRAQRCodeLink); 
-            $log->info("QRCODE link: $qrCodePath");
-            // $qrCodePath = "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse2.mm.bing.net%2Fth%3Fid%3DOIP.DRI7RrDsCN0nAZpsjuZJIQHaHa%26pid%3DApi&f=1";
-            // echo "<img src='".$qrCodePath."'/><br/>";
-            // echo "KRA link: ".$KRAQRCodeLink."<br/>";
+        }
+
+        if(!empty($qrCodePath)){
+            $qrcodeCreated = true;
+            $log->info("Invoice QRCode is created: $qrCodePath");
 
             $invoiceTemplate = new InvoiceTemplate($log);
-            $htmlTemplate = $invoiceTemplate->genSignedHTMLTemplate($qrCodePath, $KRAQRCodeLink, $invoice);
+            $htmlTemplateArray = $invoiceTemplate->genSignedHTMLTemplate($qrCodePath, $KRAQRCodeLink, $invoice);            
+            $htmlTemplate = ($htmlTemplateArray[0] == null) ? "" : $htmlTemplateArray[0];
+            $customerEmail = ($htmlTemplateArray[1] == null) ? "" : $htmlTemplateArray[1]; 
+            $customerEmailCC = ($htmlTemplateArray[2] == null) ? "" : $htmlTemplateArray[2];
+            $templateCreated = true;
+            $log->info("Invoice template is created.");
+        }else{
+            $log->info("Invoice QRCode is not created. Check QRCode creator/generator.");
+        }
 
+        if($templateCreated){
             $htmlToPDFManager = new HTMLToPDFManager($log);
-            $invoicePath = $htmlToPDFManager->genPDF($htmlTemplate);
-            echo "<br/>".$invoicePath." created successfully!<br/><br/><br/>";            
-            
-            $subject = "Spring valley coffee invoice";
-            $body = <<<HEREDOC
-                <html>
-                <head>
-                <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
-                    <style>
-                    body, p {
-                        font-family: 'Montserrat', sans-serif;
-                    }
-                    p {
-                        line-height: 1.8em;
-                        font-size:14px;
-                    }
-                    </style>
-                </head>
-                <body>
-                    <table style=" width:100%;background:#F3F3F3;font-family: 'Montserrat', sans-serif;" cellpadding="10">
-                        <tr>
-                            <td align="center"><img src="{{asset('/logo.png')}}" alt="Logo" style="width:150px;"/></td>
-                        </tr>
-                    </table>
-                    <table style="width:100%;background:#F3F3F3;" cellpadding="10">
-                        <tr>
-                            <td>
-                                <table align="center" style="width:650px;background:#fff;font-family:'Calibri';padding: 10px 20px;">
-                                    <tr>
-                                        <td>
-                                            <table rules="all" style="width:100%;" cellpadding="5" align="center">
-                                                <tr>
-                                                    <td>
-                                                        <p align="justify">Hi {{$invoice->Customer->CustomerName}},</p>
-                                                        <p align="justify">
-                                                            Here's Invoice {{$invoice->InvoiceNumber}} for Ksh {{$invoice->Total}}
-                </p>
-                                                            <p align="justify">The amount outstanding of Ksh {{$invoice->total}} is due on {{$invoice->DueDate}}
-                                                            </p>
-                                                            <p align="justify">
-                                                                View your bill online:
-                </br>
-                                                                <a href="$KRAQRCodeLink">$KRAQRCodeLink</a>
-                                                            </p>
-                                                            <p align="justify">
-                                                                        From your online bill you can print a PDF, export a CSV, or create a free login and view your outstanding bills.
-                                                            </p>
-                                                            <p align="justify">
-                                                                If you have any questions, please let us know.</p>
-                                                            <p>
-                                                                <br>
-                                                                Thanks,
-                                                                <br>
-                                                                Spring Valley Coffee
-                                                            </p>
-                                                        </p>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                            <br>
-                                        </td>
-                                    </tr>
-                                </table>
-                                <table style=" width:100%;background:#F3F3F3;font-family:'Calibri';" cellpadding="10">
-                                    <tr>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-                                        <td align="center" style="font-family:'Calibri';">
-                                            <p style='text-align:center;'>
-                                                <strong>E:</strong> 
-                                                <a href="mailto:support@xxxx.com">support@xxxx.com</a> | 
-                                                <strong>W:</strong> 
-                                                <a href='https://www.springvalleycoffee.com' target='_blank'>Spring Valley Coffee</a>
-                                            </p>
-                                            <p style='text-align:center;'>Powered by <a href='https://souzy.tech'> © Souzy International Software Solutions.</a>All Rights Reserved</p>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
-                    </table>
-                </body>
-            </html>            
-            HEREDOC;
-            $altbody = "";
+            $invoicePDFPath = $htmlToPDFManager->genPDF($htmlTemplate);  
+        }else{
+            $log->info("Invoice template is not created. Check template creator/generator.");
+        }
 
+        if(!empty($invoicePDFPath)){
+            $pdfCreated = true;
+            $log->info("Invoice PDF is created: $KRAQRCodeLink");            
+        }else{
+            $log->info("Invoice PDF is not signed. Check HTML to PDF creator/generator.");
+        }
+
+        if($pdfCreated && $invoicePDFPath){
+            $to = 'migayicecil@gmail.com';
+            $subject = "Spring valley coffee invoice";
+            $altbody = "";
             $emailManager = new EmailManager($log);
             $emailManager->setEmailSettings($smtpServer, $username, $password, $port);
-            $emailManager->setEmailRecipients($from,'migayicecil@gmail.com','','','');
-            $emailManager->setEmailAttachments($invoicePath);
-            $emailManager->setEmailContent($subject, $body, $altbody);
-            $emailManager->sendEmail();
+            $emailManager->setEmailRecipients($from,$to,'','','');
+            $emailManager->setEmailAttachments($invoicePDFPath);
+            $body = <<<HEREDOC
+            Testing content            
+            HEREDOC;            
+            $emailManager->setEmailContent($subject, $body, $altbody);            
+            if($emailManager->sendEmail()){
+                $emailSent = true;
+                $log->info("Email is sent to $to"); 
+            }else{
+                $log->info("Email failed to send to $to"); 
+            }
+        }
 
+        if($invoiceSigned){
             // DB
             $trackInvoice = new TrackInvoice();
             $trackInvoice->setInvoiceNumber($invoice->InvoiceNumber);
             $trackInvoice->setCustomerName($invoice->Customer->CustomerName);
-            $trackInvoice->setInvoiceSigned("yes");
-            $trackInvoice->setTemplateCreated("yes");
-            $trackInvoice->setPdfCreated("yes");
-            $trackInvoice->setEmailSent("yes");
+            $trackInvoice->setCustomerEmail($customerEmail);
+            $trackInvoice->setCustomerEmailCC($customerEmailCC);
+            $trackInvoice->setInvoiceSigned(booleanToMysqlHandler($invoiceSigned));
+            $trackInvoice->setQRCodeCreated(booleanToMysqlHandler($qrcodeCreated));
+            $trackInvoice->setTemplateCreated(booleanToMysqlHandler($templateCreated));
+            $trackInvoice->setPdfCreated(booleanToMysqlHandler($pdfCreated));
+            $trackInvoice->setEmailSent(booleanToMysqlHandler($emailSent));
             $trackInvoiceDataHandler =  new TrackInvoiceDataHandler($log);
             $trackInvoiceDataHandler->setData($trackInvoice);
-            $trackInvoiceDataHandler->createTrackInvoice();
-        }
+
+            $trackInvoice = new TrackInvoice();
+            $trackInvoice = $trackInvoiceDataHandler->createTrackInvoice();
+
+            if(!empty($trackInvoice->getInvoiceNumber())){
+                $log->info("Track invoice info saved: $invoice->InvoiceNumber)"); 
+            }else{
+                $log->info("Track invoice info failed to save: $invoice->InvoiceNumber)");
+            }
+        }              
     }
 }
