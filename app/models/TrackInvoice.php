@@ -47,7 +47,7 @@ class TrackInvoice{
 	}
 
 	public function setCustomerEmail($customerEmail){
-		$this->setCustomerEmail = $customerEmail;
+		$this->customerEmail = $customerEmail;
 	}
 
 	public function getCustomerEmail(){
@@ -55,7 +55,7 @@ class TrackInvoice{
 	}
 
 	public function setCustomerEmailCC($customerEmailCC){
-		$this->setCustomerEmailCC = $customerEmailCC;
+		$this->customerEmailCC = $customerEmailCC;
 	}
 
 	public function getCustomerEmailCC(){

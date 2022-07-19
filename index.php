@@ -2,12 +2,9 @@
 require_once('vendor/autoload.php');
 
 /**
- * 2. Date format issue
  * 3b. The account profile info
  * 7. Schedule service (CRONJOB)  
  * 9. Pay attention of the http codes
- * 11. Mysql customers emails null
- * 12. API request by startdate and enddate 
  * 
  */
 
@@ -22,6 +19,8 @@ use App\Enterprise\InvoiceTemplate;
 use App\Enterprise\CSVExcelManager;
 use App\DataHandlers\TrackInvoiceDataHandler;
 use App\Models\TrackInvoice;
+use App\Common\DateTimeManager;
+use App\Common\MoneyManager;
 
 $log = new ErrorLogger("ESDUnleashedApp");
 $log = $log->initLog();
@@ -51,7 +50,10 @@ function invoiceStuff($log){
     $numberOfItems = 0;
 
     while($pageNumber <= $numberOfPages){
-        $unleashedInvoices = $unleashedApi->getInvoices("Invoices/Page/$pageNumber", "pageSize=$pageSize");
+        $today = date("Y-m-d");
+        //$unleashedInvoices = $unleashedApi->getInvoices("Invoices/Page/$pageNumber", "pageSize=$pageSize");
+        $request = "pageSize=$pageSize&startDate=$today";
+        $unleashedInvoices = $unleashedApi->getInvoices("Invoices/Page/$pageNumber", $request);
 
         $pageSize = $unleashedInvoices->Pagination->PageSize; 
         $pageNumber = $unleashedInvoices->Pagination->PageNumber;
@@ -72,13 +74,16 @@ function booleanToMysqlHandler($boolean){
     return 0;
 } 
 
-function emailMessageGen($svcCustomer, $invoice, $KRAQRCodeLink){    
+function emailMessageGen($svcCustomer, $invoice, $KRAQRCodeLink, $log){ 
+    $dateTimeManager = new DateTimeManager($log);
+    $moneyManager = new MoneyManager($log);   
     $invoiceNumber = $invoice->InvoiceNumber;
-    $total = $invoice->Total;
-    $invoiceDueDate = $invoice->DueDate;
+    $total = $moneyManager->formatToMoney($invoice->Total);
+    $invoiceDueDate = $dateTimeManager->getDateFromUnreadableDateEpochDate($invoice->DueDate);
+    $fname = empty($svcCustomer->ContactFirstName) ? "" : $svcCustomer->ContactFirstName; 
     $message = "
     <div>
-    <p>Hi $svcCustomer->ContactFirstName,<p>
+    <p>Hi $fname,<p>
 
     <p>Here&#39;s invoice $invoiceNumber for KES $total.<p>
     
@@ -114,18 +119,35 @@ function invoiceManager($unleashedInvoices, $log){
     $pdfCreated = false;
     $emailSent = false;
     $customerEmail = "";
+    $customerEmailStatus = false;
     $customerEmailCC = "";
 
-    foreach ($unleashedInvoices->Items as $invoice) {
-        $esdApi = new ESDApi($log);
-        $KRAQRCodeLink = $esdApi->testPostInvoice($invoice);
-        $qrCodePath = "";
-        $invoicePDFPath = "";
+    $trackInvoiceDataHandler =  new TrackInvoiceDataHandler($log);
+    $isInvoiceAlreadySigned = false;
 
+    foreach ($unleashedInvoices->Items as $invoice) {
+        // Get customer Guid
         $customerGuid = $invoice->Customer->Guid;
-                
+        $log->info("Customer Guid: $customerGuid"); 
+        
+        // Use customer Guid to get customer info
         $unleashedApi = new UnleashedApi($log);
         $svcCustomer = $unleashedApi->getCustomer("Customers/$customerGuid");
+
+        // Get invoice number
+        $invoiceNumber = $invoice->InvoiceNumber;
+
+        // Check if invoice is already signed
+        $isInvoiceAlreadySigned = $trackInvoiceDataHandler->isTrackInvoiceSigned($invoiceNumber);
+        if($isInvoiceAlreadySigned == false){
+            // Sign invoice with ESD 
+            $esdApi = new ESDApi($log);
+            // $KRAQRCodeLink = $esdApi->testPostInvoice($invoice);
+            $KRAQRCodeLink = "kra link";
+        }
+
+        $qrCodePath = "";
+        $invoicePDFPath = "";        
 
         if(!empty($KRAQRCodeLink)){
             $invoiceSigned = true;
@@ -144,10 +166,19 @@ function invoiceManager($unleashedInvoices, $log){
             $log->info("Invoice QRCode is created: $qrCodePath");
 
             $invoiceTemplate = new InvoiceTemplate($log);
-            $htmlTemplateArray = $invoiceTemplate->genSignedHTMLTemplate($qrCodePath, $KRAQRCodeLink, $invoice, $svcCustomer);            
-            $htmlTemplate = ($htmlTemplateArray[0] == null) ? "" : $htmlTemplateArray[0];
-            $customerEmail = ($htmlTemplateArray[1] == null) ? "" : $htmlTemplateArray[1]; 
-            $customerEmailCC = ($htmlTemplateArray[2] == null) ? "" : $htmlTemplateArray[2];
+            $htmlTemplateArray = $invoiceTemplate->genSignedHTMLTemplate($qrCodePath, $KRAQRCodeLink, $invoice, $svcCustomer);         
+            $log->info("Customer contacts: Email-$htmlTemplateArray[1], CC-$htmlTemplateArray[2]");
+
+            if($htmlTemplateArray[0] != null){
+                $htmlTemplate = $htmlTemplateArray[0];
+            } 
+            if($htmlTemplateArray[1] != null){
+                $customerEmail = $htmlTemplateArray[1];
+                $customerEmailStatus = true;
+            }            
+            if($htmlTemplateArray[2] != null){
+                $customerEmailCC = $htmlTemplateArray[2];
+            }             
             $templateCreated = true;
             $log->info("Invoice template is created.");
         }else{
@@ -168,7 +199,8 @@ function invoiceManager($unleashedInvoices, $log){
             $log->info("Invoice PDF is not signed. Check HTML to PDF creator/generator.");
         }
 
-        if($pdfCreated && $invoicePDFPath){
+        if($pdfCreated && $invoicePDFPath && $customerEmailStatus){
+            // $to = $customerEmail;
             $to = 'migayicecil@gmail.com';
             $subject = "Spring valley coffee invoice";
             $altbody = "";
@@ -176,14 +208,14 @@ function invoiceManager($unleashedInvoices, $log){
             $emailManager->setEmailSettings($smtpServer, $username, $password, $port);
             $emailManager->setEmailRecipients($from,$to,'','','');
             $emailManager->setEmailAttachments($invoicePDFPath);
-            $body = emailMessageGen($svcCustomer, $invoice, $KRAQRCodeLink);                        
+            $body = emailMessageGen($svcCustomer, $invoice, $KRAQRCodeLink, $log);                        
             $emailManager->setEmailContent($subject, $body, $altbody);            
-            if($emailManager->sendEmail()){
-                $emailSent = true;
-                $log->info("Email is sent to $to"); 
-            }else{
-                $log->info("Email failed to send to $to"); 
-            }
+            // if($emailManager->sendEmail()){
+            //     $emailSent = true;
+            //     $log->info("Email is sent to $to"); 
+            // }else{
+            //     $log->info("Email failed to send to $to"); 
+            // }
         }
 
         if($invoiceSigned){
@@ -198,10 +230,8 @@ function invoiceManager($unleashedInvoices, $log){
             $trackInvoice->setTemplateCreated(booleanToMysqlHandler($templateCreated));
             $trackInvoice->setPdfCreated(booleanToMysqlHandler($pdfCreated));
             $trackInvoice->setEmailSent(booleanToMysqlHandler($emailSent));
-            $trackInvoiceDataHandler =  new TrackInvoiceDataHandler($log);
-            $trackInvoiceDataHandler->setData($trackInvoice);
 
-            $trackInvoice = new TrackInvoice();
+            $trackInvoiceDataHandler->setData($trackInvoice);
             $trackInvoice = $trackInvoiceDataHandler->createTrackInvoice();
 
             if(!empty($trackInvoice->getInvoiceNumber())){

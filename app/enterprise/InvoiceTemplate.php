@@ -3,24 +3,30 @@
 namespace App\Enterprise;
 
 use App\Unleashed\UnleashedApi;
+use App\Common\DateTimeManager;
+use App\Common\MoneyManager;
 
 class InvoiceTemplate{
 
     private $log;
+    private $dateTimeManager;
+    private $moneyManager;
 
     public function __construct($log){
         $this->log = $log;
+        $this->dateTimeManager = new DateTimeManager($this->log);
+        $this->moneyManager = new MoneyManager($this->log);
     }
 
     public function genSignedHTMLTemplate($qrCodePath, $KRAQRCodeLink, $invoice, $svcCustomer){ 
         $qrCodePath = "http://".$_SERVER['SERVER_NAME']."/".$qrCodePath;       
         $invoiceNumber = $invoice->InvoiceNumber;
         $invoiceOrderNumber = $invoice->OrderNumber;
-        $invoiceDate = $invoice->InvoiceDate;
-        $invoiceDueDate = $invoice->DueDate;
-        $subTotal = $invoice->SubTotal;
-        $total = $invoice->Total;
-        $taxTotal = $invoice->TaxTotal;
+        $invoiceDate = $this->dateTimeManager->getDateFromUnreadableDateEpochDate($invoice->InvoiceDate);
+        $invoiceDueDate = $this->dateTimeManager->getDateFromUnreadableDateEpochDate($invoice->DueDate);
+        $subTotal = $this->moneyManager->formatToMoney($invoice->SubTotal);
+        $total = $this->moneyManager->formatToMoney($invoice->Total);
+        $taxTotal = $this->moneyManager->formatToMoney($invoice->TaxTotal);
         $paymentTerm = $invoice->PaymentTerm;
         $customerName = $invoice->Customer->CustomerName;
         $customerCode = $invoice->Customer->CustomerCode;
@@ -34,11 +40,9 @@ class InvoiceTemplate{
 
         $customerEmail = $svcCustomer->Email;
         $customerEmailCC = $svcCustomer->EmailCC;
-        $customerGSTVATNumber = $svcCustomer->GSTVATNumber;        
+        $customerGSTVATNumber = $svcCustomer->GSTVATNumber;
 
-        echo "<br/><==== Template creation started ====><br/>";
-        echo "<br/>customer: $customerName, Invoice #: $invoiceNumber";
-        echo "<br/>";
+        $this->log->info("Customer info: Email-$customerEmail, CC-$customerEmailCC, VAT-$customerGSTVATNumber");     
 
         $htmlTemplate = "";        
         if(!empty($KRAQRCodeLink)){
@@ -57,7 +61,7 @@ class InvoiceTemplate{
                                 </td>
                             </tr>
                         </table> 
-                    <div style='margin-top: 10px; width: 950px; margin-left: 30px'>
+                    <div style='margin-top: 5px; width: 950px; margin-left: 30px'>
                         <table style='width: 950px;'>
                             <tr style='text-align: left;'>
                                 <th style='width: 350px;text-align: left;'>$customerName</th>
@@ -87,7 +91,7 @@ class InvoiceTemplate{
                                 </td>
                             </tr>
                         </table>
-                        <table style='width: 950px;margin-top: 40px; border-collapse: collapse;'>
+                        <table style='width: 950px;margin-top: 20px; border-collapse: collapse;'>
                             <tr style='text-align: left; border-bottom: 2px solid rgb(122, 120, 120);'>
                                 <th style='width: 350px;padding:2px;text-align: left;'>Description</th>
                                 <th style='width: 100px;padding:2px;text-align: left;'>Qty</th>
@@ -98,20 +102,24 @@ class InvoiceTemplate{
                             </tr>";
                             foreach($invoiceLines as $invoiceLine){  
                                 $productDesc = $invoiceLine->Product->ProductDescription;
-                                $taxRate = $invoiceLine->TaxRate * 100;                              
+                                $unitPrice = $this->moneyManager->formatToMoney($invoiceLine->UnitPrice);
+                                $lineTotal = $this->moneyManager->formatToMoney($invoiceLine->LineTotal);
+                                $lineTax = $this->moneyManager->formatToMoney($invoiceLine->LineTax);
+                                $taxRate = $invoiceLine->TaxRate * 100;
+
                                 $htmlTemplate .= "
                                 <tr style='text-align: left;border-bottom: 2px solid rgb(122, 120, 120);'>
                                     <td style='width: 350px;padding:2px;text-align: left;'>$productDesc</td>
                                     <td style='width: 100px;padding:2px;text-align: left;'>$invoiceLine->OrderQuantity</td>
-                                    <td style='width: 100px;padding:2px;text-align: left;'>$invoiceLine->UnitPrice</td>
-                                    <td style='width: 150px;padding:2px;text-align: left;'>$invoiceLine->LineTotal</td>
-                                    <td style='width: 150px;padding:2px;text-align: left;'>$invoiceLine->LineTax</td>
+                                    <td style='width: 100px;padding:2px;text-align: left;'>$unitPrice</td>
+                                    <td style='width: 150px;padding:2px;text-align: left;'>$lineTotal</td>
+                                    <td style='width: 150px;padding:2px;text-align: left;'>$lineTax</td>
                                     <td style='width: 100px;padding:2px;text-align: left;'>$taxRate%</td>
                                 </tr>";                                
                             }
                         $htmlTemplate .= "
                         </table>
-                        <table style='width: 400px;margin-top: 20px; margin-left: 550px;border-collapse: collapse;'>
+                        <table style='width: 400px;margin-top: 10px; margin-left: 550px;border-collapse: collapse;'>
                             <tr style='text-align: left;'>
                                 <td style='width: 200px;padding:2px;'><b>SUBTOTAL (KES)</b></td>
                                 <td style='width: 200px;padding:2px;'>$subTotal</td>
@@ -129,27 +137,36 @@ class InvoiceTemplate{
                                 <td style='width: 200px;padding:2px;font-weight: bold;'>$total</td>
                             </tr>
                         </table>
-                        <div style='margin-top: 10px;'>
-                            <div style='font-weight: bold;'>Due Date <span style='margin-left: 20px;'>$invoiceDueDate</span></div>
-                            <div style='margin-top: 10px;font-weight: bold;'>Payment Terms: <span style='margin-left: 20px; font-weight: normal;'>$paymentTerm</span></div>
-                            <div style='margin-top: 10px;font-weight: bold;'>Payment Details:
-                                <ul style='margin-left: 40px; list-style: none; margin: 5px;'>                    
-                                    <li>Bank: Diamond Trust Bank</li>
-                                    <li>Branch: Westgate (006) · 0433678002 (KES) or 0433678001 (USD)</li>
-                                    <li>Cheque: Spring Valley Coffee Roasters Limited</li>
-                                    <li>Lipa na Mpesa · Buy Goods & Services · 866299 </li>               
-                                </ul>                
-                            </div> 
-                            <div style='margin-top: 0px;font-weight: bold;'>
-                                <p>Delivery received by:</p>
-                                <p style='margin-top: 15px;'>Name: <span style='margin-left: 5px;'>__________________________________</span></p>   
-                                <p style='margin-top: 15px;'>Signature: <span style='margin-left: 5px;'>______________________________</span></p>  
-                                <p style='margin-top: 15px;'>Date: <span style='margin-left: 5px;'>___________________________________</span></p>          
-                            </div>
-                        </div>
+                        <table style='width: 950px;margin-top: 10px;'>
+                            <tr style='text-align: left;'>
+                                <td style='width:500px;'>
+                                    <div>
+                                        <div style='font-weight: bold;'>Due Date <span style='margin-left: 20px;'>$invoiceDueDate</span></div>
+                                        <div style='margin-top: 10px;font-weight: bold;'>Payment Terms: <span style='margin-left: 20px; font-weight: normal;'>$paymentTerm</span></div>
+                                        <div style='margin-top: 10px;font-weight: bold;'>Payment Details:
+                                            <ul style='margin-left: 40px; list-style: none; margin: 5px;'>                    
+                                                <li>Bank: Diamond Trust Bank</li>
+                                                <li>Branch: Westgate (006) · 0433678002 (KES) or 0433678001 (USD)</li>
+                                                <li>Cheque: Spring Valley Coffee Roasters Limited</li>
+                                                <li>Lipa na Mpesa · Buy Goods & Services · 866299 </li>               
+                                            </ul>                
+                                        </div> 
+                                        <div style='margin-top: 0px;font-weight: bold;'>
+                                            <p>Delivery received by:</p>
+                                            <p style='margin-top: 15px;'>Name: <span style='margin-left: 5px;'>__________________________________</span></p>   
+                                            <p style='margin-top: 15px;'>Signature: <span style='margin-left: 5px;'>______________________________</span></p>  
+                                            <p style='margin-top: 15px;'>Date: <span style='margin-left: 5px;'>___________________________________</span></p>          
+                                        </div>
+                                    </div>
+                                </td>            
+                                <td style='width: 350px;margin-left: 50px;'>
+                                    <h5 style='margin:0px;'>KRA QR CODE</h5>
+                                    <img width='250px' height='200px' src='".$qrCodePath."'/>
+                                </td>
+                            </tr>
+                        </table>    
                     </div>
                 </div>
-                <div style='margin-left:400px'><img width='30px' height='30px' src='".$qrCodePath."'/></div>
             "; 
             $this->log->info("Template generation successfully.");           
         }else{

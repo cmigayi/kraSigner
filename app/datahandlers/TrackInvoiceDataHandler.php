@@ -68,7 +68,8 @@ class TrackInvoiceDataHandler extends MysqlDB{
 			$trackInvoiceId = $this->pdo->lastInsertId();
 			$this->trackInvoice = $this->getTrackInvoice($trackInvoiceId);			
 			$this->pdo->commit();
-
+			$invoiceNumber = $this->trackInvoice->getInvoiceNumber();
+			$this->log->info("Invoice($invoiceNumber) saved to db successful.");
 		}catch(\PDOException $e){
 			//logger
 			$this->log->error("Error ".$e->getMessage());
@@ -106,6 +107,25 @@ class TrackInvoiceDataHandler extends MysqlDB{
 			$this->log->error("Error ".$e->getMessage());
 		}
 		return $this->trackInvoice;
+	}
+	
+	public function isTrackInvoiceSigned($invoiceNumber){
+		$this->passedData = array($invoiceNumber,1);
+		$this->sql = "SELECT * FROM tbl_track_invoices WHERE invoice_number = ? AND invoice_signed=?";
+		$isSigned = false;
+		try{
+			$this->result = $this->pdoFetchRowsCount();
+
+			if($this->result > 0){
+				$isSigned = true;
+				$this->log->info("Invoice is already signed: $isSigned");
+			}
+		}catch(\PDOException $e){
+			$isSigned = null;
+			// logger
+			$this->log->error("Error ".$e->getMessage());
+		}
+		return $isSigned;
 	}
 	
 	public function getTrackInvoices(){

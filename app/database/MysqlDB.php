@@ -26,6 +26,7 @@ class MysqlDB{
 
 	private $row;
 	private $rows;
+	private $rowsCount;
 	private $stmt;
 
 	public function __construct($log){
@@ -51,6 +52,7 @@ class MysqlDB{
 		$this->pdo = null;
 		$this->row = null;
 		$this->rows = null;
+		$this->rowsCount = 0;
 		$this->passedData = null;
 		$this->sql = null;
 	}
@@ -139,5 +141,17 @@ class MysqlDB{
 		$this->stmt = null;
 		$this->sql = null;
 		return $this->rows;
+	}
+
+	/**
+	* Handle all PDO database fetch rows count
+	*
+	* @return array
+	*/
+	public function pdoFetchRowsCount(){
+		$this->stmt = $this->pdo->prepare($this->sql);
+		$this->stmt->execute($this->passedData);
+		$this->rowsCount = $this->stmt->rowCount();
+		return $this->rowsCount;
 	}
 }
