@@ -34,20 +34,20 @@ composer dump-autoload -o
 <?php
 return [
 	"host" => "localhost",
-	"username" => "cilo",
-	"password" => "cilo2019",
-	"database" => "kra_signer",
+	"username" => "",
+	"password" => "",
+	"database" => "",
 
-	"unleashed_api" => "https://api.unleashedsoftware.com/",
-	"unleashed_api_id" => "d423e2fe-a575-4f9e-abe0-3154376ce090",
-	"unleashed_api_key" => "YAeCbF4cCajaiDyGzeQhbSZzbT5uQRIl3ni3y0HJiw6JW3KMCNOFrMP5opFPqkz0Ssxshx33vcOs3NYFQ==",
+	"unleashed_api" => "",
+	"unleashed_api_id" => "",
+	"unleashed_api_key" => "",
 
-	"esd_api" => "http://172.16.24.44:5000/EsdApi/deononline/",
+	"esd_api" => "",
 
-	"smtp_server" => "smtp.gmail.com",
-	"email_username" => "migayicecil@gmail.com",
-	"email_password" => "pfplxbsufsaayjio",
+	"smtp_server" => "",
+	"email_username" => "",
+	"email_password" => "",
 	"port" => 587,
-	"from" => "migayicecil@gmail.com",
+	"from" => "",
 ];
 ```
