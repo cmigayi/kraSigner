@@ -19,7 +19,8 @@ class InvoiceTemplate{
     }
 
     public function genSignedHTMLTemplate($qrCodePath, $KRAQRCodeLink, $invoice, $svcCustomer){ 
-        $qrCodePath = "http://".$_SERVER['SERVER_NAME']."/".$qrCodePath;       
+        $qrCodePath = "http://".$_SERVER['SERVER_NAME']."/".$qrCodePath;
+        $this->log->info("QRCode full Path: ".$qrCodePath);        
         $invoiceNumber = $invoice->InvoiceNumber;
         $invoiceOrderNumber = $invoice->OrderNumber;
         $invoiceDate = $this->dateTimeManager->getDateFromUnreadableDateEpochDate($invoice->InvoiceDate);

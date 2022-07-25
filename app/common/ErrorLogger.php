@@ -14,7 +14,9 @@ class ErrorLogger{
 	public function initLog(){
 		// create a log channel
 		$log = new Logger($this->logChannel);
-		$log->pushHandler(new StreamHandler('app.log', Logger::DEBUG));
+		$today = "logs/".date("Y-m-d");
+		$logPath = $today."_app.log";
+		$log->pushHandler(new StreamHandler($logPath, Logger::DEBUG));
 
 		return $log;
 	}

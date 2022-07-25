@@ -5,6 +5,7 @@ require_once('vendor/autoload.php');
  * 3b. The account profile info
  * 7. Schedule service (CRONJOB)  
  * 9. Pay attention of the http codes
+ * 10. .env / config
  * 
  */
 
@@ -51,9 +52,9 @@ function invoiceStuff($log){
 
     while($pageNumber <= $numberOfPages){
         $today = date("Y-m-d");
-        //$unleashedInvoices = $unleashedApi->getInvoices("Invoices/Page/$pageNumber", "pageSize=$pageSize");
-        $request = "pageSize=$pageSize&startDate=$today";
-        $unleashedInvoices = $unleashedApi->getInvoices("Invoices/Page/$pageNumber", $request);
+        $unleashedInvoices = $unleashedApi->getInvoices("Invoices/Page/$pageNumber", "pageSize=$pageSize");
+        // $request = "pageSize=$pageSize&startDate=$today";
+        // $unleashedInvoices = $unleashedApi->getInvoices("Invoices/Page/$pageNumber", $request);
 
         $pageSize = $unleashedInvoices->Pagination->PageSize; 
         $pageNumber = $unleashedInvoices->Pagination->PageNumber;
@@ -80,10 +81,14 @@ function emailMessageGen($svcCustomer, $invoice, $KRAQRCodeLink, $log){
     $invoiceNumber = $invoice->InvoiceNumber;
     $total = $moneyManager->formatToMoney($invoice->Total);
     $invoiceDueDate = $dateTimeManager->getDateFromUnreadableDateEpochDate($invoice->DueDate);
-    $fname = empty($svcCustomer->ContactFirstName) ? "" : $svcCustomer->ContactFirstName; 
+    $fname = $svcCustomer->ContactFirstName; 
+    $hiToFname = "Hi $fname,";
+    if(empty($fname)){
+        $hiToFname = "Hi,";
+    }
     $message = "
     <div>
-    <p>Hi $fname,<p>
+    <p>$hiToFname<p>
 
     <p>Here&#39;s invoice $invoiceNumber for KES $total.<p>
     
@@ -210,12 +215,12 @@ function invoiceManager($unleashedInvoices, $log){
             $emailManager->setEmailAttachments($invoicePDFPath);
             $body = emailMessageGen($svcCustomer, $invoice, $KRAQRCodeLink, $log);                        
             $emailManager->setEmailContent($subject, $body, $altbody);            
-            // if($emailManager->sendEmail()){
-            //     $emailSent = true;
-            //     $log->info("Email is sent to $to"); 
-            // }else{
-            //     $log->info("Email failed to send to $to"); 
-            // }
+            if($emailManager->sendEmail()){
+                $emailSent = true;
+                $log->info("Email is sent to $to"); 
+            }else{
+                $log->info("Email failed to send to $to"); 
+            }
         }
 
         if($invoiceSigned){
