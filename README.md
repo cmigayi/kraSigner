@@ -29,7 +29,7 @@ composer dump-autoload -o
     - invoices
     - logs
     - tmp
-4. You will need a Config.php with this details:
+4. You will need a Config.php with these details:
 ```
 <?php
 return [
