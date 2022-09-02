@@ -16,7 +16,32 @@
 - Track invoice status via a Mysql DB (Out of scope).
 - Send email and a signed invoice PDF attachment to recipients.
 
+## Access server or AWS environment or your preference
+1. SSH
+```
+ssh -i yourkey.pem serverusername@server-ip
+```
+2. If you have .ppk, convert by using putty-tools
+```
+apt-get install putty-tools
+puttygen <the_key.ppk> -O private-openssh -o <new_openssh_key>.key
+```
+## Pre-requisites:
+1. Install mysql
+```
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get purge mysql-server mysql-client
+sudo apt-get install mysql-server mysql-client
+```
+2. Install PHP >= 7
+3. Install Composer 
+
 ## Installation:
+0. Clone from this repo into your prefered server location:
+```
+git clone https://github.com/cmigayi/kraSigner.git
+```
 1. Update php composer. Install composer if not available. 
 ```
 composer update
@@ -29,7 +54,11 @@ composer dump-autoload -o
     - invoices
     - logs
     - tmp
-4. You will need a Config.php with these details:
+4. Add "Write" permission to each directory
+```
+sudo chmod o+w invoices logs tmp
+``` 	
+5. You will need a Config.php with these details:
 ```
 <?php
 return [
@@ -50,4 +79,12 @@ return [
 	"port" => 587,
 	"from" => "",
 ];
+```
+6. Create DB in Mysql, then import the .sql file
+```
+mysql -u user -p databasename < databasename.sql
+```  
+7. In case of any issues, you can check the server logs. Here is a location for Apache2 logs:
+```
+sudo ls /var/log/apache2/
 ```
