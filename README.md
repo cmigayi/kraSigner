@@ -88,3 +88,8 @@ mysql -u user -p databasename < databasename.sql
 ```
 sudo ls /var/log/apache2/
 ```
+8. In case there is an issue with SSL, (Note this issue might not produce errors or exception), add the following to curl headers:
+```
+curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+``` 
