@@ -1,4 +1,9 @@
 <?php
+ini_set('display_errors', 1);
+
+ini_set('display_startup_errors', 1);
+
+error_reporting(E_ALL);
 require_once('vendor/autoload.php');
 
 /**
@@ -52,14 +57,17 @@ function invoiceStuff($log){
 
     while($pageNumber <= $numberOfPages){
         $today = date("Y-m-d");
-        $unleashedInvoices = $unleashedApi->getInvoices("Invoices/Page/$pageNumber", "pageSize=$pageSize");
+        // $unleashedInvoices = $unleashedApi->getInvoices("Invoices/Page/$pageNumber", "pageSize=$pageSize");
+        $unleashedInvoices = $unleashedApi->getInvoice("INV-00006827");
         // $request = "pageSize=$pageSize&startDate=$today";
         // $unleashedInvoices = $unleashedApi->getInvoices("Invoices/Page/$pageNumber", $request);
-
+        //$unleashedInvoices = $unleashedApi->testGetInvoiceByNumber(); 
         $pageSize = $unleashedInvoices->Pagination->PageSize; 
         $pageNumber = $unleashedInvoices->Pagination->PageNumber;
         $numberOfPages = $unleashedInvoices->Pagination->NumberOfPages;
         $numberOfItems = $unleashedInvoices->Pagination->NumberOfItems;
+
+        $log->info($numberOfItems);
             
         invoiceManager($unleashedInvoices, $log);
 
@@ -138,16 +146,20 @@ function invoiceManager($unleashedInvoices, $log){
         // Use customer Guid to get customer info
         $unleashedApi = new UnleashedApi($log);
         $svcCustomer = $unleashedApi->getCustomer("Customers/$customerGuid");
+        $log->info("Buyer pin number: $svcCustomer->GSTVATNumber");
 
         // Get invoice number
         $invoiceNumber = $invoice->InvoiceNumber;
+        $log->info("Invoice number: $invoiceNumber"); 
 
         // Check if invoice is already signed
         $isInvoiceAlreadySigned = $trackInvoiceDataHandler->isTrackInvoiceSigned($invoiceNumber);
         if($isInvoiceAlreadySigned == false){
             // Sign invoice with ESD 
+            $log->info("Invoice number: $invoiceNumber, signing starts..."); 
             $esdApi = new ESDApi($log);
-            $KRAQRCodeLink = $esdApi->testPostInvoice($invoice);
+            $KRAQRCodeLink = $esdApi->testPostInvoice($invoice, $svcCustomer);
+            $log->info("KRA link: $KRAQRCodeLink"); 
             // $KRAQRCodeLink = "kra link";
         }
 

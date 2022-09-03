@@ -12,18 +12,24 @@ class ESDApi{
 		$this->api = $config['esd_api'];
     }
 
-    function getCurl($endpoint, $requestUrl, $format) {
+    function getCurl($endpoint, $requestUrl, $format) {        
         $curl = curl_init($this->api . $endpoint . $requestUrl);
-        curl_setopt($curl, CURLOPT_FRESH_CONNECT, true);
-        curl_setopt($curl, CURLINFO_HEADER_OUT, true);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-Type: application/$format",
-            "Accept: application/$format"));
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 20);
-        // these options allow us to read the error message sent by the API
-        curl_setopt($curl, CURLOPT_FAILONERROR, false);
-        curl_setopt($curl, CURLOPT_HTTP200ALIASES, range(400, 599));
+        $this->log->info($this->api . $endpoint . $requestUrl);
+        try{
+            curl_setopt($curl, CURLOPT_FRESH_CONNECT, true);
+            curl_setopt($curl, CURLINFO_HEADER_OUT, true);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); 
+            curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-Type: application/$format",
+                "Accept: application/$format"));
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 20);
+            // these options allow us to read the error message sent by the API
+            curl_setopt($curl, CURLOPT_FAILONERROR, false);
+            curl_setopt($curl, CURLOPT_HTTP200ALIASES, range(400, 599));
+        }catch (Exception $e) {
+            $this->log->error('ESD api error: ' + $e);
+        }
 
         return $curl;
     }
@@ -32,33 +38,36 @@ class ESDApi{
         if (!isset($data)) { return null; }
     
         try {
+          $this->log->info("Post function:");
+          $this->log->info($endpoint);
           // create the curl object.
           // - POST always requires the object's id
-          $curl = $this->getCurl("$endpoint", "", $format);
+          $curl = $this->getCurl("$endpoint", "", $format);    
           // set extra curl options required by POST
           curl_setopt($curl, CURLOPT_POST, 1);
           curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
           // POST something
-          $curl_result = curl_exec($curl);
-          error_log($curl_result);
+          $curl_result = curl_exec($curl);            
+          $this->log->info("ESD API post endpoint: ".$curl_result); 
           curl_close($curl);
           return $curl_result;
         }
         catch (Exception $e) {
-            $this->log->error('ESD api error: ' + $e);
+            $this->log->error('ESD api error: '.$e->ErrorInfo);
         }
     }
 
     function postJson($endpoint, $data) {
         // POST it, return the API's response
+        $this->log->info(json_encode($data));
         return $this->post($endpoint, "json", json_encode($data));
     }
 
     function postInvoice($invoice) {
-        return $this->postJson("signinvoice", $invoice);   
+        return $this->postJson("signinvoice/", $invoice); 
     }
 
-    function testPostInvoice($unleashedInvoice){
+    function testPostInvoice($unleashedInvoice,$svcCustomer){
         $KRAQRCodeLink = "";
         $invoice = new \stdClass();
         $invoiceItems = array();
@@ -67,6 +76,7 @@ class ESDApi{
             $invoiceItem = new \stdClass();
             $invoiceItem->hsDesc = "";
             $invoiceItem->namePLU = $invoiceLine->Product->ProductDescription;
+            $this->log->info("Invoice desc: $invoiceItem->namePLU");
             $invoiceItem->taxRate = 16;
             $invoiceItem->unitPrice = $invoiceLine->UnitPrice;
             $invoiceItem->discount = $invoiceLine->DiscountRate;
@@ -76,38 +86,32 @@ class ESDApi{
             $invoiceItem->vatClass = "A";
             array_push($invoiceItems, $invoiceItem);
         }        
-
         $invoice->deonItemDetails = $invoiceItems;
         $invoice->senderId = "a4031de9-d11f-4b52-8cca-e1c7422f3c37";
         $invoice->invoiceCategory = "tax_invoice";
-        $invoice->traderSystemInvoiceNumber = 12345;
+        $invoice->traderSystemInvoiceNumber = 1234;
         $invoice->relevantInvoiceNumber = $unleashedInvoice->InvoiceNumber;
-        $invoice->pinOfBuyer = "";
-        $invoice->discount = 0;
+        $invoice->pinOfBuyer = $svcCustomer->GSTVATNumber;
         $invoice->invoiceType = "Original";
         $invoice->exemptionNumber = "";
-        $invoice->totalInvoiceAmount = "1000";
+        $invoice->totalInvoiceAmount = $unleashedInvoice->Total;
         $invoice->systemUser = "Joe Doe";
 
         $this->log->info("ESD process started...");
 
-        echo "<br/><br/>";
-        echo "Starting ESD process <br />";
-        echo "-------------------------------------------------------------------------------------<br />";
-        //echo json_encode($invoice)."<br/><br/>"; 
-
         try {
-            echo $this->postInvoice($invoice)."<br />";
+            $this->log->info("....Test ESD TRY CATCH.....");
             $decodedEsdInvoiceResponse = json_decode($this->postInvoice($invoice));
+            
             if(!empty($decodedEsdInvoiceResponse)) {      
                 $this->log->info("ESD process response: ".$decodedEsdInvoiceResponse->status);      
-                echo "Status: ".$decodedEsdInvoiceResponse->status."<br />";
 
                 if($decodedEsdInvoiceResponse->status == "SUCCESS"){
-                    echo "qrcode: ".$decodedEsdInvoiceResponse->qrCode."<br />";
                     $this->log->info("qrcode: ".$decodedEsdInvoiceResponse->qrCode);
                     $KRAQRCodeLink = $decodedEsdInvoiceResponse->qrCode;
                 }
+            }else{
+                $this->log->info("EsdInvoiceSigning response empty thus...failed");
             }                
         } catch (\Exception $e) {
             $this->log->error("ESD api error: ".$e->ErrorInfo);                                    

@@ -44,7 +44,7 @@ class UnleashedApi{
         curl_setopt($curl, CURLOPT_HTTPHEADER, array("Content-Type: application/$format",
             "Accept: application/$format", "api-auth-id: $id", "api-auth-signature: $signature"));
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 20);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         // these options allow us to read the error message sent by the API
         curl_setopt($curl, CURLOPT_FAILONERROR, false);
         curl_setopt($curl, CURLOPT_HTTP200ALIASES, range(400, 599));
@@ -143,27 +143,17 @@ class UnleashedApi{
 
     // Call the GET invoice by number method and print the results
     function testGetInvoiceByNumber() {
-        echo "Starting test: testGetInvoiceByNumber". "<br />";
-        echo "-------------------------------------------------------------------------------------<br />";
-        // echo "GET invoice by number in JSON format:";
-        $json = $this->getInvoice("SI-00000123", "json");
-        // echo json_encode($json);
-        echo "<br />";
-        // echo "GET invoice in JSON format" . "<br />";
+        $json = $this->getInvoice("SO-00006827", "json");
         $invoice = $json->Items[0];
         $number = $invoice->InvoiceNumber;
         $subTotal = $invoice->SubTotal;
 
         $customerName = $invoice->Customer->CustomerName;
         $customerCode = $invoice->Customer->CustomerCode;
-        echo "Invoice: <br/><br/>"; 
-        echo "Inv num: $number, Subtotal: $subTotal, Custm-name: $customerName, Custm-code: $customerCode<br />";
-        
-        $this->log->info("Unleashed API get invoice by number endpoint: Invoice number - ".$number);     
-        foreach($invoice->InvoiceLines as $invoiceLine){ 
-            echo "<br/>";
-            echo "*********************************************************************"; 
-            echo "<br/>";       
+
+        $this->log->info("Unleashed API get invoice by number endpoint: Invoice number - ".$number); 
+
+        foreach($invoice->InvoiceLines as $invoiceLine){      
             $productDesc = $invoiceLine->Product->ProductDescription;
             $productOrderQuantity = $invoiceLine->OrderQuantity;
             $productInvoiceQuantity = $invoiceLine->InvoiceQuantity;
@@ -172,13 +162,7 @@ class UnleashedApi{
             $productLineTotal = $invoiceLine->LineTotal;
             $productTaxRate = $invoiceLine->TaxRate;
             $productLineTax = $invoiceLine->LineTax;
-            echo "Desc: $productDesc, Qty: $productOrderQuantity, Qty: $productInvoiceQuantity, unit Price: $productUnitPrice, Disc: $productDiscountRate<br />";
-            echo "Total: $productLineTotal, Tax %: $productTaxRate<br />";
         } 
-        echo "<br />";
-        echo "<br />";
-        echo "End of test: testGetInvoiceByNumber". "<br />";
-        echo "-------------------------------------------------------------------------------------<br />";
         return $invoice;
     }
 
