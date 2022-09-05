@@ -158,7 +158,7 @@ function invoiceManager($unleashedInvoices, $log){
             // Sign invoice with ESD 
             $log->info("Invoice number: $invoiceNumber, signing starts..."); 
             $esdApi = new ESDApi($log);
-            $KRAQRCodeLink = $esdApi->testPostInvoice($invoice, $svcCustomer);
+            $KRAQRCodeLink = $esdApi->testPostInvoice($invoice, $svcCustomer, $unleashedApi);
             $log->info("KRA link: $KRAQRCodeLink"); 
             // $KRAQRCodeLink = "kra link";
         }

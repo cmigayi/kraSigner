@@ -67,12 +67,13 @@ class ESDApi{
         return $this->postJson("signinvoice/", $invoice); 
     }
 
-    function testPostInvoice($unleashedInvoice,$svcCustomer){
+    function testPostInvoice($unleashedInvoice,$svcCustomer,$unleashedApi){
         $KRAQRCodeLink = "";
         $invoice = new \stdClass();
         $invoiceItems = array();
 
-        foreach($unleashedInvoice->InvoiceLines as $invoiceLine){ 
+        foreach($unleashedInvoice->InvoiceLines as $invoiceLine){
+            $this->log->info("----------------------------InvoiceLine Start----------------------------------"); 
             $invoiceItem = new \stdClass();
             $invoiceItem->hsDesc = "";
             $invoiceItem->namePLU = $invoiceLine->Product->ProductDescription;
@@ -82,9 +83,16 @@ class ESDApi{
             $invoiceItem->discount = $invoiceLine->DiscountRate;
             $invoiceItem->hsCode = "";
             $invoiceItem->quantity = $invoiceLine->InvoiceQuantity;
-            $invoiceItem->measureUnit = "kg";
+            $productGuid = $invoiceLine->Product->Guid;
+            $this->log->info("Invoice product GUID: $productGuid");
+            $productDetails = $unleashedApi->getProduct("Products/$productGuid");
+            $this->log->info(json_encode((array)$productDetails));
+            $measureUnit = $productDetails->UnitOfMeasure->Name;
+            $this->log->info("UnitOfMeasure: $measureUnit");
+            $invoiceItem->measureUnit = $measureUnit;
             $invoiceItem->vatClass = "A";
             array_push($invoiceItems, $invoiceItem);
+            $this->log->info("----------------------------InvoiceLine End----------------------------------");
         }        
         $invoice->deonItemDetails = $invoiceItems;
         $invoice->senderId = "a4031de9-d11f-4b52-8cca-e1c7422f3c37";

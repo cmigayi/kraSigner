@@ -131,9 +131,14 @@ class UnleashedApi{
         return $this->getJson($this->apiId, $this->apiKey, $endpoint, $request);
     }
 
-    // Invoices
+    // Invoice
     function getInvoice($invoiceNum) {
         return $this->getJson($this->apiId, $this->apiKey, "Invoices", "InvoiceNumber=$invoiceNum");
+    }
+
+    // Product
+    function getProduct($endpoint) {
+        return $this->getJson($this->apiId, $this->apiKey, $endpoint, "");
     }
 
     // 
