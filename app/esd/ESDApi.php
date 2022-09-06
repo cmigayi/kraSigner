@@ -97,8 +97,12 @@ class ESDApi{
         $invoice->deonItemDetails = $invoiceItems;
         $invoice->senderId = "a4031de9-d11f-4b52-8cca-e1c7422f3c37";
         $invoice->invoiceCategory = "tax_invoice";
-        $invoice->traderSystemInvoiceNumber = 1234;
-        $invoice->relevantInvoiceNumber = $unleashedInvoice->InvoiceNumber;
+        $invoiceNum = $unleashedInvoice->InvoiceNumber;
+        // Split the number to get the numeric part
+        $invoiceNumExploadedArr = explode("-",$invoiceNum);
+        $this->log->info("Split invoiceNumber, get numeric section: $invoiceNumExploadedArr[1]");
+        $invoice->traderSystemInvoiceNumber = $invoiceNumExploadedArr[1];
+        $invoice->relevantInvoiceNumber = $invoiceNum;
         $invoice->pinOfBuyer = $svcCustomer->GSTVATNumber;
         $invoice->invoiceType = "Original";
         $invoice->exemptionNumber = "";
