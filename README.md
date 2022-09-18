@@ -94,7 +94,7 @@ curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
 curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 ``` 
 9. Setting up Scheduler on ubuntu
-[Ubuntu crontab tutorial](https://linuxhint.com/run_cron_job_every_minute/)
+- Tutorial used -> [Ubuntu crontab tutorial](https://linuxhint.com/run_cron_job_every_minute/)
 - [x] Enable crontab on Ubuntu
 ```
 crontab -e
@@ -120,4 +120,4 @@ crontab -l
 ```
  
 10. Printing A4 (Portrait or Landscape)
-[Paper CSS doc and repo page](https://github.com/cognitom/paper-css/blob/master/examples/multiple-sheets.html).
+- Tutorial used -> [Paper CSS doc and repo page](https://github.com/cognitom/paper-css/blob/master/examples/multiple-sheets.html).
