@@ -14,9 +14,9 @@ class HTMLToPDFManager{
         $this->log = $log;
 
         $options = new Options();
-        $options->set('chroot', __DIR__);
-        $options->set('isHtml5ParserEnabled', true);
-        $options->set('isRemoteEnabled', true);
+        $options->set("chroot", __DIR__);
+        $options->set("isHtml5ParserEnabled", true);
+        $options->set("isRemoteEnabled", true);
         $this->dompdf = new Dompdf($options);
         //$this->dompdf = new Dompdf();
     }
@@ -26,7 +26,7 @@ class HTMLToPDFManager{
         $file = "invoices/invoice_".$invoice->InvoiceNumber.".pdf";
 
         // (Optional) Setup the paper size and orientation
-        $this->dompdf->setPaper('A4', 'landscape');
+        $this->dompdf->setPaper("A4", "landscape");
 
         // Render the HTML as PDF
         $this->dompdf->render();

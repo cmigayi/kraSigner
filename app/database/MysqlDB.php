@@ -65,10 +65,10 @@ class MysqlDB{
 	public function pdoConfig(){
 		$config = include("Config.php");
 
-		$this->host = $config['host'];
-		$this->config_username = $config['username'];
-		$this->config_password = $config['password'];
-		$this->database = $config['database'];
+		$this->host = $config["host"];
+		$this->config_username = $config["username"];
+		$this->config_password = $config["password"];
+		$this->database = $config["database"];
 		$this->charset = "utf8mb4";
 
 		try{

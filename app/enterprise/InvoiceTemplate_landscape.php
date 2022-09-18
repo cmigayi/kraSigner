@@ -19,8 +19,8 @@ class InvoiceTemplate{
     }
 
     public function genSignedHTMLTemplate($qrCodePath, $KRAQRCodeLink, $invoice, $svcCustomer){ 
-        $qrCodePath = "http://".$_SERVER['SERVER_NAME']."/".$qrCodePath;
-        $this->log->info("QRCode full Path: ".$qrCodePath);        
+        $qrCodePath = 'http://'.$_SERVER['SERVER_NAME'].'/'.$qrCodePath;
+        $this->log->info('QRCode full Path: '.$qrCodePath);        
         $invoiceNumber = $invoice->InvoiceNumber;
         $invoiceOrderNumber = $invoice->OrderNumber;
         $invoiceDate = $this->dateTimeManager->getDateFromUnreadableDateEpochDate($invoice->InvoiceDate);
@@ -43,9 +43,9 @@ class InvoiceTemplate{
         $customerEmailCC = $svcCustomer->EmailCC;
         $customerGSTVATNumber = $svcCustomer->GSTVATNumber;
 
-        $this->log->info("Customer info: Email-$customerEmail, CC-$customerEmailCC, VAT-$customerGSTVATNumber");     
+        $this->log->info('Customer info: Email-$customerEmail, CC-$customerEmailCC, VAT-$customerGSTVATNumber');     
 
-        $htmlTemplate = "";        
+        $htmlTemplate = '';        
         if(!empty($KRAQRCodeLink)){
 
             $htmlTemplate = "
@@ -100,7 +100,7 @@ class InvoiceTemplate{
                                 <th style='width: 150px;padding:2px;text-align: left;'>Total</th>
                                 <th style='width: 150px;padding:2px;text-align: left;'>Tax Total</th>
                                 <th style='width: 50px;padding:2px;text-align: left;'>Tax %</th>
-                            </tr>";
+                            </tr>';
                             foreach($invoiceLines as $invoiceLine){  
                                 $productDesc = $invoiceLine->Product->ProductDescription;
                                 $unitPrice = $this->moneyManager->formatToMoney($invoiceLine->UnitPrice);
@@ -108,7 +108,7 @@ class InvoiceTemplate{
                                 $lineTax = $this->moneyManager->formatToMoney($invoiceLine->LineTax);
                                 $taxRate = $invoiceLine->TaxRate * 100;
 
-                                $htmlTemplate .= "
+                                $htmlTemplate .= '
                                 <tr style='text-align: left;border-bottom: 2px solid rgb(122, 120, 120);'>
                                     <td style='width: 350px;padding:2px;text-align: left;'>$productDesc</td>
                                     <td style='width: 100px;padding:2px;text-align: left;'>$invoiceLine->OrderQuantity</td>
@@ -116,9 +116,9 @@ class InvoiceTemplate{
                                     <td style='width: 150px;padding:2px;text-align: left;'>$lineTotal</td>
                                     <td style='width: 150px;padding:2px;text-align: left;'>$lineTax</td>
                                     <td style='width: 100px;padding:2px;text-align: left;'>$taxRate%</td>
-                                </tr>";                                
+                                </tr>';                                
                             }
-                        $htmlTemplate .= "
+                        $htmlTemplate .= '
                         </table>
                         <table style='width: 400px;margin-top: 10px; margin-left: 550px;border-collapse: collapse;'>
                             <tr style='text-align: left;'>
@@ -169,9 +169,9 @@ class InvoiceTemplate{
                     </div>
                 </div>
             "; 
-            $this->log->info("Template generation successfully.");           
+            $this->log->info('Template generation successfully.');           
         }else{
-            $this->log->info("Template generation failed."); 
+            $this->log->info('Template generation failed.'); 
         }        
         return [$htmlTemplate, $customerEmail, $customerEmailCC];
     }

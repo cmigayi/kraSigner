@@ -24,7 +24,7 @@ class TrackInvoiceDataHandler extends MysqlDB{
 		/**
 		* Date and time generated for date and time record creation 
 		*/		
-		$this->dateTime = date('Y-m-d H:i:s');
+		$this->dateTime = date("Y-m-d H:i:s");
 
 		/**
 		* Initialize logger
@@ -56,7 +56,7 @@ class TrackInvoiceDataHandler extends MysqlDB{
 				$this->trackInvoice->getTemplateCreated(),
 				$this->trackInvoice->getPDFCreated(),
                 $this->trackInvoice->getEmailSent(),
-				date('Y-m-d H:i:s',strtotime($this->dateTime))
+				date("Y-m-d H:i:s",strtotime($this->dateTime))
 			);
 
 		$this->trackInvoice =  new TrackInvoice();
@@ -90,17 +90,17 @@ class TrackInvoiceDataHandler extends MysqlDB{
 			if($this->result == null){
 				$this->trackInvoice = null;
 			}else{
-				$this->trackInvoice->setId($this->result[0]['id']);
-				$this->trackInvoice->setInvoiceNumber($this->result[0]['invoice_number']);
-				$this->trackInvoice->setCustomerName($this->result[0]['customer_name']);
-				$this->trackInvoice->setCustomerEmail($this->result[0]['customer_email']);
-				$this->trackInvoice->setCustomerEmailCC($this->result[0]['customer_email_cc']);
-				$this->trackInvoice->setInvoiceSigned($this->result[0]['invoice_signed']);
-				$this->trackInvoice->setQRCodeCreated($this->result[0]['qrcode_created']);
-				$this->trackInvoice->setTemplateCreated($this->result[0]['template_created']);
-				$this->trackInvoice->setPdfCreated ($this->result[0]['pdf_created']);
-				$this->trackInvoice->setEmailSent($this->result[0]['email_sent']);
-				$this->trackInvoice->setDateTime($this->result[0]['date_time_created']);
+				$this->trackInvoice->setId($this->result[0]["id"]);
+				$this->trackInvoice->setInvoiceNumber($this->result[0]["invoice_number"]);
+				$this->trackInvoice->setCustomerName($this->result[0]["customer_name"]);
+				$this->trackInvoice->setCustomerEmail($this->result[0]["customer_email"]);
+				$this->trackInvoice->setCustomerEmailCC($this->result[0]["customer_email_cc"]);
+				$this->trackInvoice->setInvoiceSigned($this->result[0]["invoice_signed"]);
+				$this->trackInvoice->setQRCodeCreated($this->result[0]["qrcode_created"]);
+				$this->trackInvoice->setTemplateCreated($this->result[0]["template_created"]);
+				$this->trackInvoice->setPdfCreated ($this->result[0]["pdf_created"]);
+				$this->trackInvoice->setEmailSent($this->result[0]["email_sent"]);
+				$this->trackInvoice->setDateTime($this->result[0]["date_time_created"]);
 			}
 		}catch(\PDOException $e){
 			// logger

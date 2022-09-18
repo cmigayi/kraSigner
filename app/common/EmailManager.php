@@ -26,16 +26,16 @@ class EmailManager{
         $this->mail->SMTPAuth   = true;                                   //Enable SMTP authentication
         $this->mail->Username   = $username;                     //SMTP username
         $this->mail->Password   = $password;                               //SMTP password
-        $this->mail->SMTPSecure = 'tls';            //Enable implicit TLS encryption
+        $this->mail->SMTPSecure = "tls";            //Enable implicit TLS encryption
         $this->mail->Port       = $port;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
         $this->log->info("EmailManager: set settings");
     }
 
     public function setEmailRecipients($from,$to,$replyTo,$cc,$bcc){
         //Recipients
-        // $this->mail->setFrom($from, 'Mailer');
+        $this->mail->setFrom($from, "Mailer");
         $this->mail->addAddress($to);     //Add a recipient
-        //$this->mail->addReplyTo($replyTo, 'Information');
+        //$this->mail->addReplyTo($replyTo, "Information");
         //$this->mail->addCC($cc);
         //$this->mail->addBCC($bcc);
         $this->log->info("EmailManager: set recipients");
@@ -59,7 +59,7 @@ class EmailManager{
     public function sendEmail(){
         try {
             $this->mail->send();
-            // echo 'Message has been sent';
+            // echo "Message has been sent";
             $this->log->info("EmailManager: Email has been sent");
             return true;
         } catch (Exception $e) {

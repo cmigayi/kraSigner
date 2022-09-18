@@ -3,29 +3,29 @@
 $curl = curl_init();
 
 $data = array(
-    "hsDesc" => "",
-    "namePLU" => "Gourmet \u2022 250g \u2022 Fine",
-    "taxRate" => 16,
-    "unitPrice" => 1,
-    "discount" => 0,
-    "hsCode" => "",
-    "quantity" => 1,
-    "measureUnit" => "kg",
-    "vatClass" => "A"
+    'hsDesc' => '',
+    'namePLU' => 'Gourmet \u2022 250g \u2022 Fine',
+    'taxRate' => 16,
+    'unitPrice' => 1,
+    'discount' => 0,
+    'hsCode' => '',
+    'quantity' => 1,
+    'measureUnit' => 'kg',
+    'vatClass' => 'A'
 );
 $data2 = array();
 array_push($data2,$data);
 $data3 = array(
-    "deonItemDetails" => $data2,
-    "senderId" => "a4031de9-d11f-4b52-8cca-e1c7422f3c37",
-    "invoiceCategory" => "tax_invoice",
-    "traderSystemInvoiceNumber" => 1234,
-    "relevantInvoiceNumber" => "INV-00006827",
-    "pinOfBuyer" => null,
-    "invoiceType" => "Original",
-    "exemptionNumber" => "",
-    "totalInvoiceAmount" => 1.16,
-    "systemUser" => "Joe Doe"
+    'deonItemDetails' => $data2,
+    'senderId' => 'a4031de9-d11f-4b52-8cca-e1c7422f3c37',
+    'invoiceCategory' => 'tax_invoice',
+    'traderSystemInvoiceNumber' => 1234,
+    'relevantInvoiceNumber' => 'INV-00006827',
+    'pinOfBuyer' => null,
+    'invoiceType' => 'Original',
+    'exemptionNumber' => '',
+    'totalInvoiceAmount' => 1.16,
+    'systemUser' => 'Joe Doe'
 );
 
 $payload = json_encode($data3);

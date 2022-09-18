@@ -1,10 +1,10 @@
 <?php
-ini_set('display_errors', 1);
+ini_set("display_errors", 1);
 
-ini_set('display_startup_errors', 1);
+ini_set("display_startup_errors", 1);
 
 error_reporting(E_ALL);
-require_once('vendor/autoload.php');
+require_once("vendor/autoload.php");
 
 /**
  * 3b. The account profile info
@@ -38,7 +38,7 @@ invoiceStuff($log);
 // $unleashedApi = new UnleashedApi($log);
 //$unleashedApi->getInvoices("json", "Invoices/Page/1", "");
 //$unleashedInvoices = $unleashedApi->testGetInvoices();
-// $unleashedInvoices = json_decode(file_get_contents('raw_json.json'));
+// $unleashedInvoices = json_decode(file_get_contents("raw_json.json"));
 // invoiceManager($unleashedInvoices, $log);
 
 $log->info("App execution stopped...");
@@ -120,11 +120,11 @@ function emailMessageGen($svcCustomer, $invoice, $KRAQRCodeLink, $log){
 
 function invoiceManager($unleashedInvoices, $log){
     $config = include("Config.php");
-    $smtpServer = $config['smtp_server'];
-    $username = $config['email_username'];
-    $password = $config['email_password'];
-    $port = $config['port'];
-    $from = $config['from'];    
+    $smtpServer = $config["smtp_server"];
+    $username = $config["email_username"];
+    $password = $config["email_password"];
+    $port = $config["port"];
+    $from = $config["from"];    
 
     $invoiceSigned = false;
     $qrcodeCreated = false;
@@ -160,7 +160,7 @@ function invoiceManager($unleashedInvoices, $log){
             $esdApi = new ESDApi($log);
             $KRAQRCodeLink = $esdApi->testPostInvoice($invoice, $svcCustomer, $unleashedApi);
             $log->info("KRA link: $KRAQRCodeLink"); 
-            // $KRAQRCodeLink = "kra link";
+            $KRAQRCodeLink = "kra link";
         }
 
         $qrCodePath = "";
@@ -218,12 +218,12 @@ function invoiceManager($unleashedInvoices, $log){
 
         if($pdfCreated && $invoicePDFPath && $customerEmailStatus){
             // $to = $customerEmail;
-            $to = 'migayicecil@gmail.com';
+            $to = "migayicecil@gmail.com";
             $subject = "Spring valley coffee invoice";
             $altbody = "";
             $emailManager = new EmailManager($log);
             $emailManager->setEmailSettings($smtpServer, $username, $password, $port);
-            $emailManager->setEmailRecipients($from,$to,'','','');
+            $emailManager->setEmailRecipients($from,$to,"","","");
             $emailManager->setEmailAttachments($invoicePDFPath);
             $body = emailMessageGen($svcCustomer, $invoice, $KRAQRCodeLink, $log);                        
             $emailManager->setEmailContent($subject, $body, $altbody);            

@@ -9,7 +9,7 @@ class ESDApi{
         $this->log = $log;
         $config = include("Config.php");
 
-		$this->api = $config['esd_api'];
+		$this->api = $config["esd_api"];
     }
 
     function getCurl($endpoint, $requestUrl, $format) {        
@@ -28,7 +28,7 @@ class ESDApi{
             curl_setopt($curl, CURLOPT_FAILONERROR, false);
             curl_setopt($curl, CURLOPT_HTTP200ALIASES, range(400, 599));
         }catch (Exception $e) {
-            $this->log->error('ESD api error: ' + $e);
+            $this->log->error("ESD api error: " + $e);
         }
 
         return $curl;
@@ -41,24 +41,27 @@ class ESDApi{
           $this->log->info("Post function:");
           $this->log->info($endpoint);
           // create the curl object.
-          // - POST always requires the object's id
+          // - POST always requires the object"s id
           $curl = $this->getCurl("$endpoint", "", $format);    
           // set extra curl options required by POST
           curl_setopt($curl, CURLOPT_POST, 1);
           curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
           // POST something
-          $curl_result = curl_exec($curl);            
+          $curl_result = curl_exec($curl);   
+          $info = curl_getinfo($curl);     
+          $this->log->info("ESD API post response code: ".$info["http_code"]); 
+          if(curl_errno($curl))  $this->log->info("ESD API post Curl error: " . curl_error($curl));    
           $this->log->info("ESD API post endpoint: ".$curl_result); 
           curl_close($curl);
           return $curl_result;
         }
         catch (Exception $e) {
-            $this->log->error('ESD api error: '.$e->ErrorInfo);
+            $this->log->error("ESD api error: ".$e->ErrorInfo);
         }
     }
 
     function postJson($endpoint, $data) {
-        // POST it, return the API's response
+        // POST it, return the API"s response
         $this->log->info(json_encode($data));
         return $this->post($endpoint, "json", json_encode($data));
     }

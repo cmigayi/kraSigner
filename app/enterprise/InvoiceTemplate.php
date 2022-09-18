@@ -49,8 +49,26 @@ class InvoiceTemplate{
         if(!empty($KRAQRCodeLink)){
 
             $htmlTemplate = "
-            <div style='width:210mm;height:297mm;margin-left:auto; margin-right:auto;'> 
-                        <table style='width: 100%;'>
+            <!DOCTYPE html>
+            <html lang='en'>
+
+            <head>
+            <meta charset='utf-8'>
+            <title>A4</title>
+
+            <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css'>
+
+            <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/paper-css/0.4.1/paper.css'>
+
+            <style>@page { size: A4 }</style>
+            </head>
+
+            <body class='A4'>
+
+            <section class='sheet padding-10mm'>
+
+                <article>
+                <table style='width: 100%;'>
                             <tr style='text-align: left;'>
                                 <td style='width:50%;'>
                                     <span style='font-size: 25px; color: #232323; font-weight: bold; font-family: Arial, Helvetica, sans-serif;'>
@@ -92,7 +110,7 @@ class InvoiceTemplate{
                                 </td>
                             </tr>
                         </table>
-                        <table style='width: 100%;margin-top: 20px;border-collapse: collapse;'>
+                        <table style='width: 700px;margin-top: 20px;border-collapse: collapse;'>
                             <tr style='text-align: left; border-bottom: 2px solid rgb(122, 120, 120);'>
                                 <th style='width: 35%;padding:2px;text-align: left;'>Description</th>
                                 <th style='width: 10%;padding:2px;text-align: left;'>Qty</th>
@@ -100,7 +118,8 @@ class InvoiceTemplate{
                                 <th style='width: 15%;padding:2px;text-align: left;'>Total</th>
                                 <th style='width: 15%;padding:2px;text-align: left;'>Tax Total</th>
                                 <th style='width: 5%;padding:2px;text-align: left;'>Tax %</th>
-                            </tr>";
+                            </tr>    
+                        ";
                             foreach($invoiceLines as $invoiceLine){  
                                 $productDesc = $invoiceLine->Product->ProductDescription;
                                 $unitPrice = $this->moneyManager->formatToMoney($invoiceLine->UnitPrice);
@@ -110,13 +129,14 @@ class InvoiceTemplate{
 
                                 $htmlTemplate .= "
                                 <tr style='text-align: left;border-bottom: 2px solid rgb(122, 120, 120);'>
-                                    <td style='width: 35%;padding:2px;text-align: left;'>$productDesc</td>
-                                    <td style='width: 10%;padding:2px;text-align: left;'>$invoiceLine->OrderQuantity</td>
-                                    <td style='width: 10%;padding:2px;text-align: left;'>$unitPrice</td>
-                                    <td style='width: 15%;padding:2px;text-align: left;'>$lineTotal</td>
-                                    <td style='width: 15%;padding:2px;text-align: left;'>$lineTax</td>
-                                    <td style='width: 10%;padding:2px;text-align: left;'>$taxRate%</td>
-                                </tr>";                                
+                                    <td style='width: 35%;padding:2px;'>$productDesc</td>
+                                    <td style='width: 10%;padding:2px;'>$invoiceLine->OrderQuantity</td>
+                                    <td style='width: 15%;padding:2px;'>$unitPrice</td>
+                                    <td style='width: 15%;padding:2px;'>$lineTotal</td>
+                                    <td style='width: 15%;padding:2px;'>$lineTax</td>
+                                    <td style='width: 10%;padding:2px;'>$taxRate%</td>
+                                </tr>
+                                ";                                
                             }
                         $htmlTemplate .= "
                         </table>
@@ -162,12 +182,19 @@ class InvoiceTemplate{
                                 </td>            
                                 <td style='width: 35%;margin-left: 10%;'>
                                     <h5 style='margin:0px;'>KRA QR CODE</h5>
-                                    <img width='250px' height='200px' src='".$qrCodePath."'/>
+                                    <img width='250px' height='200px' src='$qrCodePath'/>
                                 </td>
                             </tr>
                         </table>    
                     </div>
-                </div>
+            
+                </article>
+
+            </section>
+
+            </body>
+
+            </html>
             "; 
             $this->log->info("Template generation successfully.");           
         }else{

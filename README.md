@@ -93,3 +93,28 @@ sudo ls /var/log/apache2/
 curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
 curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 ``` 
+9. Setting up Scheduler on ubuntu
+[Ubuntu crontab tutorial](https://linuxhint.com/run_cron_job_every_minute/)
+[x] Enable crontab on Ubuntu
+```
+crontab -e
+```
+[] Add task to be executed at the bottom of the editor. Use bash(.sh).
+```
+* * * * * /bin/krasigner_shedulers/springvalleycoffee.sh
+```
+	- The bash script above will be executed in an interval of 1 minute (* * * * *).
+[] Create the bash file in the location above (/bin/krasigner_shedulers/), or prefered location.
+[] Then add the script below:
+```
+#!/bin/bash
+wget -q -O /dev/null '{BaseURL}/kraSigner/kraSigner/index.php' > /dev/null 2>&1
+```
+	- The bash script will query the above URL every 1 minute.
+[] Check crontab by list
+```
+crontab -l
+```
+ 
+10. Printing A4 (Portrait or Landscape)
+[Paper CSS doc and repo page](https://github.com/cognitom/paper-css/blob/master/examples/multiple-sheets.html).

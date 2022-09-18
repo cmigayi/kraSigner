@@ -12,9 +12,9 @@ class UnleashedApi{
         $this->log = $log;
         $config = include("Config.php");
 
-		$this->api = $config['unleashed_api'];
-        $this->apiId = $config['unleashed_api_id'];
-        $this->apiKey = $config['unleashed_api_key'];
+		$this->api = $config["unleashed_api"];
+        $this->apiId = $config["unleashed_api_id"];
+        $this->apiKey = $config["unleashed_api_key"];
     } 
 
     // Get the request signature:
@@ -27,7 +27,7 @@ class UnleashedApi{
     // Using the wrong value for $request will result in an 403 forbidden response from the API
     function getSignature($request, $key) {
         $this->log->info("Unleashed API signature generated");
-        return base64_encode(hash_hmac('sha256', $request, $key, true));
+        return base64_encode(hash_hmac("sha256", $request, $key, true));
     }
 
     // Create the curl object and set the required options
@@ -76,7 +76,7 @@ class UnleashedApi{
             return $curl_result;
         }
         catch (Exception $e) {
-            //error_log('Error: ' + $e);        
+            //error_log("Error: " + $e);        
             $this->log->error("Unleashed API get error: ".$e->ErrorInfo);
         }
     }
@@ -94,7 +94,7 @@ class UnleashedApi{
             // calculate API signature
             $signature = $this->getSignature("", $key);
             // create the curl object.
-            // - POST always requires the object's id
+            // - POST always requires the object"s id
             $curl = $this->getCurl($id, $key, $signature, "$endpoint/$dataId", "", $format);
             // set extra curl options required by POST
             curl_setopt($curl, CURLOPT_POST, 1);
@@ -106,7 +106,7 @@ class UnleashedApi{
             return $curl_result;
         }
         catch (Exception $e) {
-            //error_log('Error: ' + $e);
+            //error_log("Error: " + $e);
             $this->log->error("Unleashed API post error: ".$e->ErrorInfo);
         }
     }
@@ -122,7 +122,7 @@ class UnleashedApi{
     // - the object to POST must be a valid stdClass object. Not array, not associative.
     // - converts the object to string and POSTs it to the API
     function postJson($id, $key, $endpoint, $dataId, $data) {
-        // POST it, return the API's response
+        // POST it, return the API"s response
         return $this->post($id, $key, $endpoint, "json", $dataId, json_encode($data));
     }
 

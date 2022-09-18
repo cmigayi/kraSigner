@@ -14,11 +14,11 @@ class CSVExcelManager{
 
     public function writeToTracker($invoiceNumber,$signingStatus,$kraUrl,$templateStatus,$emailStatus){
         $this->writer->addRow([
-            'InvoiceNumber' => $invoiceNumber,
-            'Signed' => $signingStatus,
-            'KRALink' => $kraUrl,
-            'InvoiceTemplated' => $templateStatus,
-            'EmailSent' => $emailStatus
+            "InvoiceNumber" => $invoiceNumber,
+            "Signed" => $signingStatus,
+            "KRALink" => $kraUrl,
+            "InvoiceTemplated" => $templateStatus,
+            "EmailSent" => $emailStatus
         ]);
     }
 
