@@ -121,3 +121,40 @@ crontab -l
  
 10. Printing A4 (Portrait or Landscape)
 - Tutorial used -> [Paper CSS doc and repo page](https://github.com/cognitom/paper-css/blob/master/examples/multiple-sheets.html).
+
+11. Signing device goes out of service or remains busy after one request, error 503
+The device goes out of service because the next invoice request is sent before the device responds to the previous request.
+To solve this issue, we re-architectured as follows:
+- Redis queue to ensure the device handles one request at a time  
+- Two schedulers: one updates the queue every minute; while the other signs the invoices from the queue (one at a time) every 1 minute. 
+ - Install redis on ubuntu:
+ ```
+ sudo apt install -y php-redis
+ ```
+ - Find the Redis password in the config file
+ ```
+ sudo nano /etc/redis/redis.conf
+ ```
+ - Locate password here:
+ ```
+ requirepass YOURPASSPHRASE
+ ```
+ - To start / stop / restart redis, use this:
+ ```
+ sudo systemctl restart redis
+ ```
+ - To execute Redis commands, execute Redis-ctl in the Ubuntu Terminal:
+ ```
+ redis-cli
+ ``` 
+ - To authorize Redis with password:
+ ```
+ auth [enter password]
+ ``` 
+ - Clear all Redis data:
+ ```
+ flushall
+ ```
+ - Tutorial1 used -> [Redis implementation](https://www.vultr.com/docs/implement-redis-queue-and-worker-with-php-on-ubuntu-20-04/)
+
+ - Tutorial2 used -> [Redis password tuts](https://onelinerhub.com/php-redis/using-password-to-connect-to-redis)

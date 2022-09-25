@@ -140,27 +140,27 @@ class InvoiceTemplate{
                             }
                         $htmlTemplate .= "
                         </table>
-                        <table style='width: 40%;margin-top: 10px; margin-left: 55%;'>
+                        <table style='width: 400px;margin-top: 10px; margin-left: 300px;border-collapse: collapse;'>
                             <tr style='text-align: left;'>
-                                <td style='width: 20%;padding:2px;'><b>SUBTOTAL (KES)</b></td>
+                                <td style='width: 45%;padding:2px;'><b>SUBTOTAL (KES)</b></td>
                                 <td style='width: 20%;padding:2px;'>$subTotal</td>
                             </tr>
                             <tr style='text-align: left;'>
-                                <td style='width: 20%;padding:2px;'><b>CHARGE SUBTOTAL (KES)</b></td>
+                                <td style='width: 45%;padding:2px;'><b>CHARGE SUBTOTAL (KES)</b></td>
                                 <td style='width: 20%;padding:2px;'>0.00</td>
                             </tr>
                             <tr style='text-align: left;'>
-                                <td style='width: 20%;padding:2px;'><b>TAX (KES)</b></td>
+                                <td style='width: 45%;padding:2px;'><b>TAX (KES)</b></td>
                                 <td style='width: 20%;padding:2px;'>$taxTotal</td>
                             </tr>
                             <tr style='text-align: left;border-top: 2px solid rgb(122, 120, 120);border-top: 2px solid rgb(122, 120, 120);'>
-                                <td style='width: 20%;padding:2px;'><b>TOTAL INCL. TAX (KES)</b></td>
+                                <td style='width: 45%;padding:2px;'><b>TOTAL INCL. TAX (KES)</b></td>
                                 <td style='width: 20%;padding:2px;font-weight: bold;'>$total</td>
                             </tr>
                         </table>
-                        <table style='width: 100%;margin-top: 10px;'>
+                        <table style='width: 700px;margin-top: 30px;'>
                             <tr style='text-align: left;'>
-                                <td style='width:50%;'>
+                                <td style='width: 400px;'>
                                     <div>
                                         <div style='font-weight: bold;'>Due Date <span style='margin-left: 20px;'>$invoiceDueDate</span></div>
                                         <div style='margin-top: 10px;font-weight: bold;'>Payment Terms: <span style='margin-left: 20px; font-weight: normal;'>$paymentTerm</span></div>
@@ -180,9 +180,10 @@ class InvoiceTemplate{
                                         </div>
                                     </div>
                                 </td>            
-                                <td style='width: 35%;margin-left: 10%;'>
-                                    <h5 style='margin:0px;'>KRA QR CODE</h5>
-                                    <img width='250px' height='200px' src='$qrCodePath'/>
+                                <td style='width: 300px;' >
+                                    <div style='margin-left: 100px;'>
+                                        <img width='200px' height='200px' src='$qrCodePath'/>
+                                    </div>    
                                 </td>
                             </tr>
                         </table>    

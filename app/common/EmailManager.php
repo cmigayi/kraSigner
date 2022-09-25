@@ -33,7 +33,7 @@ class EmailManager{
 
     public function setEmailRecipients($from,$to,$replyTo,$cc,$bcc){
         //Recipients
-        $this->mail->setFrom($from, "Mailer");
+        $this->mail->setFrom($from, "Spring Valley Coffee");
         $this->mail->addAddress($to);     //Add a recipient
         //$this->mail->addReplyTo($replyTo, "Information");
         //$this->mail->addCC($cc);

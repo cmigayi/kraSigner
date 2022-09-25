@@ -1,80 +1,18 @@
 <?php
-ini_set("display_errors", 1);
-
-ini_set("display_startup_errors", 1);
-
-error_reporting(E_ALL);
 require_once("vendor/autoload.php");
-
-/**
- * 3b. The account profile info
- * 7. Schedule service (CRONJOB)  
- * 9. Pay attention of the http codes
- * 10. .env / config
- * 
- */
 
 use App\Common\QRCodeManager;
 use App\Esd\ESDApi;
 use App\Unleashed\UnleashedApi;
 use App\Common\HTMLToPDFManager;
 use App\Common\EmailManager;
-use Spatie\Async\Pool;
 use App\Common\ErrorLogger; 
 use App\Enterprise\InvoiceTemplate;
-use App\Enterprise\CSVExcelManager;
 use App\DataHandlers\TrackInvoiceDataHandler;
 use App\Models\TrackInvoice;
 use App\Common\DateTimeManager;
 use App\Common\MoneyManager;
 
-$log = new ErrorLogger("ESDUnleashedApp","");
-$log = $log->initLog();
-
-$log->info("App execution started...");
-
-invoiceStuff($log);
-
-// $unleashedApi = new UnleashedApi($log);
-//$unleashedApi->getInvoices("json", "Invoices/Page/1", "");
-//$unleashedInvoices = $unleashedApi->testGetInvoices();
-// $unleashedInvoices = json_decode(file_get_contents("raw_json.json"));
-// invoiceManager($unleashedInvoices, $log);
-
-$log->info("App execution stopped...");
-
-/**
- * Index Functions
- */
-
-function invoiceStuff($log){
-    $unleashedApi = new UnleashedApi($log);
-
-    $pageSize = 200; 
-    $pageNumber = 1;
-    $numberOfPages = 1;
-    $numberOfItems = 0;
-
-    while($pageNumber <= $numberOfPages){
-        $today = date("Y-m-d");
-        $unleashedInvoices = $unleashedApi->getInvoices("Invoices/Page/$pageNumber", "pageSize=$pageSize");
-        // $unleashedInvoices = $unleashedApi->getInvoice("INV-00006827");
-        // $request = "pageSize=$pageSize&startDate=$today";
-        // $unleashedInvoices = $unleashedApi->getInvoices("Invoices/Page/$pageNumber", $request);
-        //$unleashedInvoices = $unleashedApi->testGetInvoiceByNumber(); 
-        $pageSize = $unleashedInvoices->Pagination->PageSize; 
-        $pageNumber = $unleashedInvoices->Pagination->PageNumber;
-        $numberOfPages = $unleashedInvoices->Pagination->NumberOfPages;
-        $numberOfItems = $unleashedInvoices->Pagination->NumberOfItems;
-
-        $log->info($numberOfItems);
-            
-        invoiceManager($unleashedInvoices, $log);
-
-        $pageNumber = $pageNumber+1; 
-    }
-       
-}
 
 function booleanToMysqlHandler($boolean){
     if($boolean){
@@ -118,51 +56,57 @@ function emailMessageGen($svcCustomer, $invoice, $KRAQRCodeLink, $log){
     return $message;
 }
 
-function invoiceManager($unleashedInvoices, $log){
-    $config = include("Config.php");
-    $smtpServer = $config["smtp_server"];
-    $username = $config["email_username"];
-    $password = $config["email_password"];
-    $port = $config["port"];
-    $from = $config["from"];    
+$log = new ErrorLogger("ESDUnleashedApp","retrieve_redis");
+$log = $log->initLog();
 
-    $invoiceSigned = false;
-    $qrcodeCreated = false;
-    $templateCreated = false;
-    $pdfCreated = false;
-    $emailSent = false;
-    $customerEmail = "";
-    $customerEmailStatus = false;
-    $customerEmailCC = "";
+$config = include("Config.php");
+$smtpServer = $config["smtp_server"];
+$username = $config["email_username"];
+$password = $config["email_password"];
+$redisServer = $config["redis_server"];
+$redisPort = $config["redis_port"];
+$redisPassword = $config["redis_password"];
+$port = $config["port"];
+$from = $config["from"];    
 
-    $trackInvoiceDataHandler =  new TrackInvoiceDataHandler($log);
-    $isInvoiceAlreadySigned = false;
+$invoiceSigned = false;
+$qrcodeCreated = false;
+$templateCreated = false;
+$pdfCreated = false;
+$emailSent = false;
+$isInvoiceAlreadySigned = false;
+$customerEmailStatus = false;
+$customerEmail = "";
+$customerEmailCC = "";
 
-    foreach ($unleashedInvoices->Items as $invoice) { 
-        $log->info("**************************New Invoice***********************************"); 
-        // Get customer Guid
-        $customerGuid = $invoice->Customer->Guid;
-        $log->info("Customer Guid: $customerGuid"); 
-        
-        // Use customer Guid to get customer info
-        $unleashedApi = new UnleashedApi($log);
-        $svcCustomer = $unleashedApi->getCustomer("Customers/$customerGuid");
-        $log->info("Buyer pin number: $svcCustomer->GSTVATNumber");
+$trackInvoiceDataHandler =  new TrackInvoiceDataHandler($log);
 
-        // Get invoice number
-        $invoiceNumber = $invoice->InvoiceNumber;
-        $log->info("Invoice number: $invoiceNumber"); 
+$log->info("App execution started...");
 
-        // Check if invoice is already signed
-        $isInvoiceAlreadySigned = $trackInvoiceDataHandler->isTrackInvoiceSigned($invoiceNumber);
-        if($isInvoiceAlreadySigned == false){
-            // Sign invoice with ESD 
-            $log->info("Invoice number: $invoiceNumber, signing starts..."); 
-            $esdApi = new ESDApi($log);
-            //$KRAQRCodeLink = $esdApi->testPostInvoice($invoice, $svcCustomer, $unleashedApi);
-            $log->info("KRA link: $KRAQRCodeLink"); 
-            $KRAQRCodeLink = "kra link";
-        }
+try {
+    $redis = new Redis();
+    $redis->connect($redisServer, $redisPort);
+    $redis->auth($redisPassword);
+
+    $data = $redis->lpop("invoices_register");
+    $data  = json_decode($data, true); 
+
+    if($data == null){
+        $log->info("Redis queue is empty. No signing can be done.");  
+    }else{
+        $log->info("-------------------------------New Invoice--------------------------");              
+    
+        $invoiceNumber = $data['invoice_number'];
+        $svcCustomer = json_decode($data['customer_json']);
+        $invoice = json_decode($data['invoice_json']);
+        $unleashedApi = json_decode($data['unleashed_invoices_json']);
+
+        // Sign invoice with ESD 
+        $log->info("Invoice number: $invoiceNumber, signing starts..."); 
+        $esdApi = new ESDApi($log);
+        //$KRAQRCodeLink = $esdApi->testPostInvoice($invoice, $svcCustomer, $unleashedApi);
+        $log->info("KRA link: $KRAQRCodeLink"); 
+        $KRAQRCodeLink = "kra link";
 
         $qrCodePath = "";
         $invoicePDFPath = "";        
@@ -258,8 +202,10 @@ function invoiceManager($unleashedInvoices, $log){
                 $log->info("Track invoice info failed to save: $invoice->InvoiceNumber)");
             }
         } 
-        // wait for 10 seconds before another invoice 
-        $log->info("Waiting for 10 seconds before the next invoice"); 
-        sleep(10);             
-    }
+    }      
+
+} catch (Exception $e) {
+    $log->error($e->getMessage());
 }
+
+$log->info("App execution stopped...");
