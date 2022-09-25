@@ -122,7 +122,7 @@ crontab -l
 10. Printing A4 (Portrait or Landscape)
 - Tutorial used -> [Paper CSS doc and repo page](https://github.com/cognitom/paper-css/blob/master/examples/multiple-sheets.html).
 
-### Devise goes out of serve or remains busy after a request (http error 503)
+### Devise goes out of service or remains busy after a request (http error 503)
 - Signing device goes out of service or remains busy after one request, error 503
 The device goes out of service because the next invoice request is sent before the device responds to the previous request.
 To solve this issue, we re-architectured as follows:
