@@ -160,4 +160,4 @@ To solve this issue, we re-architectured as follows:
 
  - Tutorial2 used -> [Redis password tuts](https://onelinerhub.com/php-redis/using-password-to-connect-to-redis)
 ### Architecture
-![architecture](/architectural-design.png?raw=true "Architecture")
+![architecture](/architectural-design.png?raw=true)
