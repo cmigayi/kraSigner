@@ -57,9 +57,11 @@ function invoiceStuff($log){
 
     while($pageNumber <= $numberOfPages){
         $today = date("Y-m-d");
+        $yesterday = date("Y-m-d",strtotime("yesterday"));
         $unleashedInvoices = $unleashedApi->getInvoices("Invoices/Page/$pageNumber", "pageSize=$pageSize");
         // $unleashedInvoices = $unleashedApi->getInvoice("INV-00006827");
         // $request = "pageSize=$pageSize&startDate=$today";
+        // $log->info("Request page and date: ".$request);
         // $unleashedInvoices = $unleashedApi->getInvoices("Invoices/Page/$pageNumber", $request);
         //$unleashedInvoices = $unleashedApi->testGetInvoiceByNumber(); 
         $pageSize = $unleashedInvoices->Pagination->PageSize; 

@@ -104,9 +104,9 @@ try {
         // Sign invoice with ESD 
         $log->info("Invoice number: $invoiceNumber, signing starts..."); 
         $esdApi = new ESDApi($log);
-        //$KRAQRCodeLink = $esdApi->testPostInvoice($invoice, $svcCustomer, $unleashedApi);
+        $KRAQRCodeLink = $esdApi->testPostInvoice($invoice, $svcCustomer, $unleashedApi);
         $log->info("KRA link: $KRAQRCodeLink"); 
-        $KRAQRCodeLink = "kra link";
+        //$KRAQRCodeLink = "kra link";
 
         $qrCodePath = "";
         $invoicePDFPath = "";        
@@ -206,6 +206,6 @@ try {
 
 } catch (Exception $e) {
     $log->error($e->getMessage());
-}
+} 
 
 $log->info("App execution stopped...");

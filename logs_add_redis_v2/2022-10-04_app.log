@@ -1,0 +1,6 @@
+[2022-10-04T13:41:38.802416+03:00] ESDUnleashedApp.INFO: App execution started... [] []
+[2022-10-04T13:41:38.845812+03:00] ESDUnleashedApp.INFO: Unleashed API signature generated [] []
+[2022-10-04T13:41:38.845990+03:00] ESDUnleashedApp.INFO: Unleashed API curl object created and required options set [] []
+[2022-10-04T13:42:08.848056+03:00] ESDUnleashedApp.INFO: Unleashed API get endpoint: success [] []
+[2022-10-04T13:42:08.848457+03:00] ESDUnleashedApp.INFO: Unleashed number of items:  [] []
+[2022-10-04T13:42:08.894780+03:00] ESDUnleashedApp.INFO: App execution stopped... [] []

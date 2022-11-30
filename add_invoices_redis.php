@@ -18,6 +18,10 @@ $redisServer = $config["redis_server"];
 $redisPort = $config["redis_port"];
 $redisPassword = $config["redis_password"];
 
+$redis = new Redis();
+$redis->connect($redisServer, $redisPort);
+$redis->auth($redisPassword);
+
 $log = new ErrorLogger("ESDUnleashedApp","add_redis");
 $log = $log->initLog();
 
@@ -86,11 +90,7 @@ function invoicesToRedis($unleashedInvoices, $log){
         $isInvoiceAlreadySigned = $trackInvoiceDataHandler->isTrackInvoiceSigned($invoiceNumber);
         if($isInvoiceAlreadySigned == false){
             $log->info("Invoice number: $invoiceNumber, adding to redis..."); 
-            try {
-                $redis = new Redis();
-                $redis->connect($redisServer, $redisPort);
-                $redis->auth($redisPassword);
-    
+            try {    
                 $data = [];
                 $data = [
                    'invoice_number' => $invoiceNumber,
