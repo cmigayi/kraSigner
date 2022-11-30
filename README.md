@@ -159,3 +159,5 @@ To solve this issue, we re-architectured as follows:
  - Tutorial1 used -> [Redis implementation](https://www.vultr.com/docs/implement-redis-queue-and-worker-with-php-on-ubuntu-20-04/)
 
  - Tutorial2 used -> [Redis password tuts](https://onelinerhub.com/php-redis/using-password-to-connect-to-redis)
+### Architecture
+![architecture](/repository/architectural-design?raw=true "Architecture")
